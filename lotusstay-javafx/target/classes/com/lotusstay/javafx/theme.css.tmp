@@ -1,0 +1,869 @@
+﻿/* ==========================================================================
+   LotusStay — Luxury Hotel Management System
+   Design System v2.0 — Modern PMS Dashboard
+   Palette: Deep Navy + Deep Teal + Slate Background
+   ========================================================================== */
+
+.root {
+    -fx-bg:              #F5F7FA;
+    -fx-surface:         #FFFFFF;
+    -fx-surface-subtle:  #F1F5F9;
+    -fx-surface-hover:   #F8FAFC;
+    -fx-surface-active:  #EEF2FF;
+    -fx-ink:             #1F2937;
+    -fx-ink-body:        #374151;
+    -fx-ink-soft:        #6B7280;
+    -fx-ink-muted:       #9CA3AF;
+    -fx-border-col:      #E5E7EB;
+    -fx-border-focus:    #0D9488;
+    -fx-primary:         #0D9488;
+    -fx-primary-hover:   #0F766E;
+    -fx-primary-active:  #115E59;
+    -fx-primary-light:   #CCFBF1;
+    -fx-primary-bg:      #F0FDFA;
+    -fx-sidebar-bg:      #1A2744;
+    -fx-sidebar-hover:   rgba(255,255,255,0.06);
+    -fx-sidebar-active:  rgba(13,148,136,0.18);
+    -fx-sidebar-text:    #94A3B8;
+    -fx-sidebar-active-text: #5EEAD4;
+    -fx-sidebar-border:  #243050;
+    -fx-status-green:    #059669;
+    -fx-status-green-bg: #ECFDF5;
+    -fx-status-blue:     #0284C7;
+    -fx-status-blue-bg:  #EFF6FF;
+    -fx-status-amber:    #D97706;
+    -fx-status-amber-bg: #FFFBEB;
+    -fx-status-red:      #DC2626;
+    -fx-status-red-bg:   #FEF2F2;
+    -fx-status-purple:   #7C3AED;
+    -fx-status-purple-bg:#F5F3FF;
+    -fx-status-trong:    #059669;
+    -fx-status-o:        #0284C7;
+    -fx-status-don:      #D97706;
+    -fx-status-tri:      #DC2626;
+    -fx-font-family: "Segoe UI", "Inter", -apple-system, "Roboto", sans-serif;
+    -fx-background-color: -fx-bg;
+}
+
+.app-shell {
+    -fx-background-color: -fx-bg;
+}
+
+/* ==========================================================================
+   1. SIDEBAR (Navy sang trọng, phân cấp rõ ràng)
+   ========================================================================== */
+.sidebar {
+    -fx-background-color: -fx-sidebar-bg;
+    -fx-padding: 0;
+    -fx-min-width: 240px;
+    -fx-pref-width: 240px;
+    -fx-max-width: 240px;
+    -fx-border-color: transparent -fx-sidebar-border transparent transparent;
+    -fx-border-width: 0 1 0 0;
+}
+
+.brand-mark {
+    -fx-font-size: 20px;
+    -fx-text-fill: white;
+}
+
+.brand-name {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 17px;
+    -fx-font-weight: 700;
+}
+
+.brand-sub {
+    -fx-text-fill: #64748B;
+    -fx-font-size: 10.5px;
+    -fx-font-weight: 400;
+}
+
+.sidebar-section-label {
+    -fx-text-fill: #475569;
+    -fx-font-size: 9.5px;
+    -fx-font-weight: 700;
+    -fx-padding: 14 16 4 16;
+}
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -fx-sidebar-text;
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 9 16 9 16;
+    -fx-background-radius: 7;
+    -fx-cursor: hand;
+    -fx-max-width: Infinity;
+}
+
+.nav-button:hover {
+    -fx-background-color: -fx-sidebar-hover;
+    -fx-text-fill: #E2E8F0;
+}
+
+.nav-button:armed {
+    -fx-background-color: rgba(255,255,255,0.1);
+    -fx-text-fill: #FFFFFF;
+}
+
+.nav-button.active {
+    -fx-background-color: -fx-sidebar-active;
+    -fx-text-fill: -fx-sidebar-active-text;
+    -fx-font-weight: 600;
+    -fx-border-color: transparent transparent transparent #14B8A6;
+    -fx-border-width: 0 0 0 3;
+    -fx-background-radius: 0 7 7 0;
+}
+
+.sidebar-user-footer {
+    -fx-background-color: rgba(0,0,0,0.15);
+    -fx-border-color: -fx-sidebar-border transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 12 14;
+}
+
+.sidebar-user-name {
+    -fx-text-fill: #CBD5E1;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 600;
+}
+
+.sidebar-user-role {
+    -fx-text-fill: #64748B;
+    -fx-font-size: 11px;
+}
+
+/* ==========================================================================
+   2. TOPBAR (Header trắng tinh khôi, sạch sẽ)
+   ========================================================================== */
+.topbar {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: transparent transparent -fx-border-col transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 13 24;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.04), 6, 0, 0, 1);
+}
+
+.page-title {
+    -fx-text-fill: -fx-ink;
+    -fx-font-size: 19px;
+    -fx-font-weight: 700;
+}
+
+.page-date {
+    -fx-text-fill: -fx-ink-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+}
+
+.user-pill {
+    -fx-background-color: -fx-surface-subtle;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-padding: 6 14;
+    -fx-text-fill: -fx-ink-body;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+}
+
+.user-pill:hover {
+    -fx-background-color: #E5E7EB;
+}
+
+/* ==========================================================================
+   3. TYPOGRAPHY & LABELS
+   ========================================================================== */
+.label, .text {
+    -fx-text-fill: -fx-ink-body;
+}
+
+.hint-text {
+    -fx-text-fill: -fx-ink-soft;
+    -fx-font-size: 12px;
+}
+
+.section-title {
+    -fx-text-fill: -fx-ink;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.section-sub {
+    -fx-text-fill: -fx-ink-soft;
+    -fx-font-size: 12.5px;
+}
+
+.form-label {
+    -fx-text-fill: -fx-ink-body;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 600;
+}
+
+.field-error {
+    -fx-text-fill: -fx-status-red;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: 500;
+}
+
+/* ==========================================================================
+   4. CARDS, PANELS & KPI (Bo góc nhẹ 8px, viền mỏng thanh lịch)
+   ========================================================================== */
+.kpi-card {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 20 22;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.05), 10, 0, 0, 2);
+    -fx-cursor: hand;
+}
+
+.kpi-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.10), 14, 0, 0, 4);
+    -fx-border-color: #D1D5DB;
+}
+
+.kpi-label {
+    -fx-text-fill: -fx-ink-soft;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 600;
+}
+
+.kpi-value {
+    -fx-text-fill: -fx-ink;
+    -fx-font-size: 26px;
+    -fx-font-weight: 700;
+}
+
+.kpi-delta-up {
+    -fx-text-fill: -fx-status-green;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: 600;
+}
+
+.kpi-delta-down {
+    -fx-text-fill: -fx-status-red;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: 600;
+}
+
+.kpi-sub {
+    -fx-text-fill: -fx-ink-muted;
+    -fx-font-size: 11.5px;
+}
+
+.panel {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.04), 8, 0, 0, 1);
+}
+
+/* ==========================================================================
+   5. SƠ ĐỒ PHÒNG (Room Grid & Operational Cards)
+   ========================================================================== */
+.room-card {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-border-col -fx-border-col -fx-border-col -fx-border-col;
+    -fx-border-width: 1 1 1 4;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 14 14;
+    -fx-cursor: hand;
+    -fx-min-width: 155px;
+    -fx-pref-width: 165px;
+    -fx-max-width: 185px;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.04), 6, 0, 0, 1);
+}
+
+.room-card:hover {
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.11), 12, 0, 0, 3);
+}
+
+.room-card.status-trong {
+    -fx-border-color: -fx-border-col -fx-border-col -fx-border-col #059669;
+}
+.room-card.status-dang_o {
+    -fx-border-color: -fx-border-col -fx-border-col -fx-border-col #0284C7;
+}
+.room-card.status-dang_don {
+    -fx-border-color: -fx-border-col -fx-border-col -fx-border-col #D97706;
+}
+.room-card.status-bao_tri {
+    -fx-border-color: -fx-border-col -fx-border-col -fx-border-col #DC2626;
+}
+
+.room-number {
+    -fx-text-fill: -fx-ink;
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+}
+
+.room-sub {
+    -fx-text-fill: -fx-ink-soft;
+    -fx-font-size: 12px;
+    -fx-font-weight: 500;
+}
+
+.badge {
+    -fx-padding: 3 10;
+    -fx-background-radius: 12;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-alignment: CENTER;
+}
+
+.badge-trong, .badge-available, .badge-active {
+    -fx-background-color: -fx-status-green-bg;
+    -fx-text-fill: -fx-status-green;
+    -fx-border-color: #A7F3D0;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.badge-dang_o, .badge-occupied {
+    -fx-background-color: -fx-status-blue-bg;
+    -fx-text-fill: -fx-status-blue;
+    -fx-border-color: #BAE6FD;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.badge-dang_don, .badge-cleaning, .badge-warning {
+    -fx-background-color: -fx-status-amber-bg;
+    -fx-text-fill: -fx-status-amber;
+    -fx-border-color: #FDE68A;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.badge-bao_tri, .badge-danger, .badge-inactive {
+    -fx-background-color: -fx-status-red-bg;
+    -fx-text-fill: -fx-status-red;
+    -fx-border-color: #FECACA;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.badge-dat_truoc, .badge-reserved, .badge-info {
+    -fx-background-color: -fx-status-purple-bg;
+    -fx-text-fill: -fx-status-purple;
+    -fx-border-color: #DDD6FE;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.badge-neutral {
+    -fx-background-color: -fx-surface-subtle;
+    -fx-text-fill: -fx-ink-soft;
+    -fx-border-color: -fx-border-col;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+/* ==========================================================================
+   6. NÚT BẤM (Buttons - Hover & Pressed trạng thái phản hồi rõ ràng)
+   ========================================================================== */
+.btn-primary {
+    -fx-background-color: -fx-primary;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 7;
+    -fx-padding: 9 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(13,148,136,0.25), 6, 0, 0, 2);
+}
+.btn-primary:hover {
+    -fx-background-color: -fx-primary-hover;
+    -fx-effect: dropshadow(gaussian, rgba(13,148,136,0.4), 8, 0, 0, 3);
+}
+.btn-primary:armed {
+    -fx-background-color: -fx-primary-active;
+    -fx-effect: none;
+}
+
+.btn-outline {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-text-fill: -fx-ink-body;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-padding: 8 18;
+    -fx-cursor: hand;
+}
+.btn-outline:hover {
+    -fx-background-color: -fx-surface-subtle;
+    -fx-border-color: #9CA3AF;
+    -fx-text-fill: -fx-ink;
+}
+.btn-outline:armed {
+    -fx-background-color: #E5E7EB;
+}
+
+.btn-danger {
+    -fx-background-color: -fx-status-red-bg;
+    -fx-border-color: #FECACA;
+    -fx-border-width: 1;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-text-fill: -fx-status-red;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-padding: 8 18;
+    -fx-cursor: hand;
+}
+.btn-danger:hover {
+    -fx-background-color: -fx-status-red;
+    -fx-border-color: -fx-status-red;
+    -fx-text-fill: #FFFFFF;
+}
+.btn-danger:armed {
+    -fx-background-color: #B91C1C;
+}
+
+.btn-gold {
+    -fx-background-color: -fx-primary;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-background-radius: 7;
+    -fx-padding: 9 20;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(13,148,136,0.25), 6, 0, 0, 2);
+}
+.btn-gold:hover {
+    -fx-background-color: -fx-primary-hover;
+    -fx-effect: dropshadow(gaussian, rgba(13,148,136,0.4), 8, 0, 0, 3);
+}
+.btn-gold:armed {
+    -fx-background-color: -fx-primary-active;
+    -fx-effect: none;
+}
+
+.btn-icon {
+    -fx-background-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 5 8;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-background-radius: 5;
+}
+.btn-icon:hover {
+    -fx-background-color: -fx-surface-subtle;
+}
+.btn-gold:armed {
+    -fx-background-color: #78350F;
+}
+
+/* ==========================================================================
+   7. BẢNG DỮ LIỆU (TableView - Gọn gàng, dễ nhìn, chuẩn Enterprise)
+   ========================================================================== */
+.table-view {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.04), 8, 0, 0, 1);
+    -fx-table-cell-border-color: transparent;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #F9FAFB;
+    -fx-background-radius: 10 10 0 0;
+    -fx-border-color: transparent transparent -fx-border-col transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view .filler {
+    -fx-background-color: #F9FAFB;
+    -fx-border-color: transparent transparent -fx-border-col transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+    -fx-padding: 10 14;
+    -fx-border-width: 0;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -fx-ink-soft;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: 700;
+}
+
+.table-row-cell {
+    -fx-background-color: -fx-surface;
+    -fx-text-fill: -fx-ink-body;
+    -fx-border-color: transparent transparent -fx-border-col transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 2 0;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #FAFBFC;
+}
+
+.table-row-cell:hover {
+    -fx-background-color: #F1F5F9;
+    -fx-cursor: hand;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: #E0F2FE;
+}
+
+.table-row-cell:selected .text,
+.table-row-cell:selected .label {
+    -fx-text-fill: #0369A1;
+    -fx-font-weight: 600;
+}
+
+.table-view .cell {
+    -fx-text-fill: -fx-ink-body;
+    -fx-font-size: 13px;
+    -fx-padding: 9 14;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.table-view .placeholder .label {
+    -fx-text-fill: -fx-ink-muted;
+    -fx-font-size: 13px;
+}
+
+/* ==========================================================================
+   8. INPUTS & FORM CONTROLS
+   ========================================================================== */
+.text-field, .password-field, .text-area {
+    -fx-background-color: -fx-surface;
+    -fx-text-fill: -fx-ink;
+    -fx-prompt-text-fill: -fx-ink-muted;
+    -fx-background-radius: 7;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 7;
+    -fx-padding: 9 12;
+    -fx-font-size: 13px;
+}
+
+.text-field:focused, .password-field:focused, .text-area:focused {
+    -fx-border-color: -fx-primary;
+    -fx-effect: dropshadow(gaussian, rgba(13,148,136,0.18), 5, 0, 0, 0);
+}
+
+.text-field:disabled, .password-field:disabled {
+    -fx-background-color: -fx-surface-subtle;
+    -fx-opacity: 0.7;
+}
+
+.combo-box {
+    -fx-background-color: -fx-surface;
+    -fx-text-fill: -fx-ink;
+    -fx-background-radius: 7;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 7;
+    -fx-padding: 2 4;
+    -fx-font-size: 13px;
+}
+
+.combo-box:focused {
+    -fx-border-color: -fx-primary;
+    -fx-effect: dropshadow(gaussian, rgba(13,148,136,0.18), 5, 0, 0, 0);
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: -fx-ink;
+    -fx-background-color: transparent;
+    -fx-padding: 6 10;
+    -fx-font-size: 13px;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.14), 16, 0, 0, 6);
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: -fx-surface-subtle;
+}
+
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: -fx-primary-bg;
+    -fx-text-fill: -fx-primary;
+}
+
+.date-picker {
+    -fx-background-color: -fx-surface;
+    -fx-background-radius: 7;
+    -fx-border-color: #D1D5DB;
+    -fx-border-width: 1;
+    -fx-border-radius: 7;
+    -fx-font-size: 13px;
+}
+
+.date-picker:focused {
+    -fx-border-color: -fx-primary;
+}
+
+.date-picker .text-field {
+    -fx-border-width: 0;
+    -fx-background-color: transparent;
+    -fx-padding: 6 8;
+}
+
+.check-box .box {
+    -fx-background-radius: 4;
+    -fx-border-radius: 4;
+    -fx-border-color: #D1D5DB;
+}
+.check-box:selected .box {
+    -fx-background-color: -fx-primary;
+    -fx-border-color: -fx-primary;
+}
+.check-box:selected .mark {
+    -fx-background-color: white;
+}
+
+/* ==========================================================================
+   9. SCROLLBARS (Mảnh mai, hiện đại)
+   ========================================================================== */
+.scroll-bar {
+    -fx-background-color: transparent;
+    -fx-pref-width: 7px;
+    -fx-pref-height: 7px;
+}
+
+.scroll-bar .track {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #CBD5E1;
+    -fx-background-radius: 4;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #94A3B8;
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-pref-width: 0;
+}
+
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-width: 0;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ==========================================================================
+   10. MÀN HÌNH ĐĂNG NHẬP (Login View - Tinh tế, chuẩn Luxury Hotel)
+   ========================================================================== */
+.login-root {
+    -fx-background-color: #0F172A;
+}
+
+.login-left-panel {
+    -fx-background-color: #1A2744;
+    -fx-padding: 48;
+}
+
+.login-brand-name {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 32px;
+    -fx-font-weight: 700;
+}
+
+.login-brand-tagline {
+    -fx-text-fill: #64748B;
+    -fx-font-size: 14px;
+    -fx-wrap-text: true;
+}
+
+.login-feature-item {
+    -fx-text-fill: #94A3B8;
+    -fx-font-size: 13px;
+    -fx-padding: 4 0;
+}
+
+.login-right-panel {
+    -fx-background-color: #FFFFFF;
+    -fx-padding: 56 52;
+}
+
+.login-card {
+    -fx-background-color: -fx-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-padding: 36 32;
+    -fx-max-width: 400px;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.08), 20, 0, 0, 6);
+}
+
+.login-title {
+    -fx-text-fill: -fx-ink;
+    -fx-font-size: 26px;
+    -fx-font-weight: 700;
+}
+
+.login-sub {
+    -fx-text-fill: -fx-ink-soft;
+    -fx-font-size: 14px;
+}
+
+.login-error {
+    -fx-text-fill: -fx-status-red;
+    -fx-font-size: 12.5px;
+    -fx-font-weight: 500;
+    -fx-background-color: -fx-status-red-bg;
+    -fx-background-radius: 6;
+    -fx-border-color: #FECACA;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-padding: 8 12;
+    -fx-wrap-text: true;
+}
+
+.login-hint {
+    -fx-text-fill: -fx-ink-muted;
+    -fx-font-size: 11.5px;
+    -fx-wrap-text: true;
+    -fx-padding: 8 10;
+    -fx-background-color: -fx-surface-subtle;
+    -fx-background-radius: 6;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+}
+
+/* ==========================================================================
+   11. DIALOGS & ALERTS (Hộp thoại xác nhận, thêm mới)
+   ========================================================================== */
+.dialog-pane {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.18), 24, 0, 0, 8);
+}
+
+.dialog-pane .header-panel {
+    -fx-background-color: -fx-surface-subtle;
+    -fx-border-color: transparent transparent -fx-border-col transparent;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 14 20;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-text-fill: -fx-ink;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+.dialog-pane .button-bar {
+    -fx-background-color: -fx-surface-subtle;
+    -fx-border-color: -fx-border-col transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+    -fx-padding: 10 16;
+}
+
+.dialog-pane .button-bar .button {
+    -fx-background-color: -fx-surface;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-border-radius: 7;
+    -fx-background-radius: 7;
+    -fx-text-fill: -fx-ink-body;
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-padding: 7 18;
+    -fx-cursor: hand;
+}
+
+.dialog-pane .button-bar .button:hover {
+    -fx-background-color: -fx-surface-subtle;
+}
+
+.dialog-pane .button-bar .button:default {
+    -fx-background-color: -fx-primary;
+    -fx-border-color: -fx-primary;
+    -fx-text-fill: #FFFFFF;
+}
+
+.dialog-pane .button-bar .button:default:hover {
+    -fx-background-color: -fx-primary-hover;
+    -fx-border-color: -fx-primary-hover;
+}
+
+/* SUMMARY ROW */
+.summary-row {
+    -fx-background-color: -fx-surface-subtle;
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 12 18;
+}
+
+.summary-value {
+    -fx-text-fill: -fx-ink;
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+}
+
+.summary-label {
+    -fx-text-fill: -fx-ink-soft;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+/* INVOICE */
+.invoice-total-value {
+    -fx-text-fill: -fx-primary;
+    -fx-font-size: 22px;
+    -fx-font-weight: 700;
+}
+
+.invoice-total-label {
+    -fx-text-fill: -fx-ink;
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+}
+
+/* SEPARATOR */
+.separator .line {
+    -fx-border-color: -fx-border-col;
+    -fx-border-width: 1 0 0 0;
+}
+\ n / *   D A S H B O A R D   U P D A T E S   * / \ n . h e r o - b a n n e r   { \ n         - f x - b a c k g r o u n d - c o l o r :   l i n e a r - g r a d i e n t ( t o   r i g h t ,   # 2 E 2 2 1 8 ,   # A 3 7 0 3 3 ) ; \ n         - f x - b a c k g r o u n d - r a d i u s :   1 2 ; \ n         - f x - p a d d i n g :   3 0 ; \ n         - f x - e f f e c t :   d r o p s h a d o w ( g a u s s i a n ,   r g b a ( 1 5 , 2 3 , 4 2 , 0 . 1 ) ,   1 0 ,   0 ,   0 ,   4 ) ; \ n } \ n . h e r o - t i t l e   { \ n         - f x - t e x t - f i l l :   # F F F F F F ; \ n         - f x - f o n t - s i z e :   2 4 p x ; \ n         - f x - f o n t - w e i g h t :   b o l d ; \ n } \ n . h e r o - s u b   { \ n         - f x - t e x t - f i l l :   r g b a ( 2 5 5 ,   2 5 5 ,   2 5 5 ,   0 . 8 ) ; \ n         - f x - f o n t - s i z e :   1 4 p x ; \ n         - f x - l i n e - s p a c i n g :   4 p x ; \ n } \ n . k p i - c a r d - n e w   { \ n         - f x - b a c k g r o u n d - c o l o r :   # F F F F F F ; \ n         - f x - b o r d e r - c o l o r :   # E 5 E 7 E B ; \ n         - f x - b o r d e r - w i d t h :   1 ; \ n         - f x - b o r d e r - r a d i u s :   1 2 ; \ n         - f x - b a c k g r o u n d - r a d i u s :   1 2 ; \ n         - f x - p a d d i n g :   2 0 ; \ n         - f x - e f f e c t :   d r o p s h a d o w ( g a u s s i a n ,   r g b a ( 1 5 , 2 3 , 4 2 , 0 . 0 3 ) ,   8 ,   0 ,   0 ,   2 ) ; \ n } \ n . k p i - v a l u e - n e w   { \ n         - f x - t e x t - f i l l :   # 1 1 1 8 2 7 ; \ n         - f x - f o n t - s i z e :   2 8 p x ; \ n         - f x - f o n t - w e i g h t :   b o l d ; \ n } \ n 
+ 
+ 
