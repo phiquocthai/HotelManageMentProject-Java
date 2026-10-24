@@ -1,14 +1,11 @@
 package com.example.hotel_management_project.DTO.Request;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+import jakarta.validation.constraints.Size;
 
 public class LoginRequest {
     @NotBlank(message = "Tài khoản không được để trống")
+    @Size(max = 50, message = "Tài khoản không được vượt quá 50 ký tự")
     private String account;
     @NotBlank(message = "Mật khẩu không được để trống")
     private String password;

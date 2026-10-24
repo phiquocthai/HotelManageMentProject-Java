@@ -13,7 +13,7 @@ public class CustomerRequest {
     @Size(max = 30, message = "Họ và tên không được vượt quá 30 ký tự")
     private String fullName;
 
-    @NotBlank
+    @NotBlank(message = "Số CCCD không được để trống")
     @CCCD
     private String citizenId;
 

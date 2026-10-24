@@ -3,7 +3,6 @@ package com.example.hotel_management_project.Converter;
 import com.example.hotel_management_project.DTO.Request.RoomRequest;
 import com.example.hotel_management_project.DTO.Request.RoomTypeRequest;
 import com.example.hotel_management_project.DTO.Response.RoomResponse;
-import com.example.hotel_management_project.DTO.Response.RoomTypeResponse;
 import com.example.hotel_management_project.Models.Entity.Room;
 import com.example.hotel_management_project.Models.Entity.RoomType;
 import org.modelmapper.ModelMapper;

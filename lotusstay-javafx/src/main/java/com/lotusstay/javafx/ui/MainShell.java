@@ -11,12 +11,20 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.*;
 
+import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * MainShell — Dark Luxury Theme (Black, Dark Slate & Gold).
+ * Cấu trúc chuẩn theo đúng ảnh thiết kế: Nền đen tuyền, menu bên trái nổi bật với Bootstrap Icons,
+ * thanh trên cùng trang nhã, vùng hiển thị thoáng đãng và sang trọng.
+ */
 public class MainShell extends BorderPane {
 
     private final StackPane content = new StackPane();
@@ -28,81 +36,83 @@ public class MainShell extends BorderPane {
     }
 
     private MainShell() {
+        setStyle("-fx-background-color: #0A0D14;");
         getStyleClass().add("app-shell");
+        if (MainApp.class.getResource("/com/lotusstay/javafx/theme.css") != null) {
+            getStylesheets().add(MainApp.class.getResource("/com/lotusstay/javafx/theme.css").toExternalForm());
+        }
         setLeft(buildSidebar());
-        
+
         VBox centerArea = new VBox();
+        centerArea.setStyle("-fx-background-color: #0A0D14;");
         Node topbar = buildTopbar();
+        content.setStyle("-fx-background-color: #0A0D14;");
         centerArea.getChildren().addAll(topbar, content);
         VBox.setVgrow(content, Priority.ALWAYS);
         setCenter(centerArea);
-        
+
         goTo("dashboard");
     }
 
     private VBox buildSidebar() {
         VBox sidebar = new VBox();
         sidebar.getStyleClass().add("sidebar");
+        sidebar.setStyle("-fx-background-color: #0A0D14; -fx-min-width: 250px; -fx-pref-width: 250px; -fx-max-width: 250px; -fx-border-color: transparent #1E2532 transparent transparent; -fx-border-width: 0 1 0 0;");
 
         // ── Brand header ────────────────────────────────────────────────
         HBox brand = new HBox(12);
         brand.setAlignment(Pos.CENTER_LEFT);
-        brand.setPadding(new Insets(18, 16, 16, 18));
-        brand.setStyle("-fx-background-color: rgba(0,0,0,0.15); -fx-border-color: transparent transparent #243050 transparent; -fx-border-width: 0 0 1 0;");
+        brand.setPadding(new Insets(20, 18, 18, 20));
+        brand.setStyle("-fx-background-color: #0A0D14; -fx-border-color: transparent transparent #1E2532 transparent; -fx-border-width: 0 0 1 0;");
 
-        Label mark = new Label("🛎️");
-        mark.getStyleClass().add("brand-mark");
+        Node mark = IconUtils.icon("building", 22, Color.web("#F59E0B"));
         VBox names = new VBox(2,
                 labelled("LotusStay", "brand-name"),
                 labelled("QUẢN LÝ KHÁCH SẠN", "brand-sub"));
         brand.getChildren().addAll(mark, names);
 
-        // ── Nav section: Vận hành ────────────────────────────────────────
+        // ── 1. Section: VẬN HÀNH / TỔNG QUAN ────────────────────────────
         Label opLabel = new Label("VẬN HÀNH");
         opLabel.getStyleClass().add("sidebar-section-label");
 
-        VBox nav = new VBox(2);
-        nav.setPadding(new Insets(0, 8, 0, 8));
+        VBox opNav = new VBox(2);
+        opNav.setPadding(new Insets(0, 10, 0, 10));
+        addNavTo(opNav, "dashboard", "dashboard", "Tổng quan",      true, true, true);
+        addNavTo(opNav, "rooms",     "rooms",     "Sơ đồ phòng",    true, true, true);
+        addNavTo(opNav, "bookings",  "bookings",  "Đặt phòng",      true, true, true);
+        addNavTo(opNav, "customers", "customers", "Khách hàng",     true, true, true);
+        addNavTo(opNav, "invoices",  "invoices",  "Hóa đơn",        true, true, true);
 
-        addNav(nav, "dashboard",  "📊  Tổng quan",           true, true, true);
-        addNav(nav, "rooms",      "🛏️  Sơ đồ phòng",         true, true, true);
-        addNav(nav, "bookings",   "📅  Đặt phòng",           true, true, true);
-        addNav(nav, "customers",  "👤  Khách hàng",          true, true, true);
-        addNav(nav, "invoices",   "🧾  Hóa đơn",             true, true, true);
-
-        // ── Nav section: Danh mục ────────────────────────────────────────
+        // ── 2. Section: DANH MỤC ─────────────────────────────────────────
         Label catLabel = new Label("DANH MỤC");
         catLabel.getStyleClass().add("sidebar-section-label");
 
         VBox catNav = new VBox(2);
-        catNav.setPadding(new Insets(0, 8, 0, 8));
+        catNav.setPadding(new Insets(0, 10, 0, 10));
+        addNavTo(catNav, "roomtypes",  "roomtypes",  "Loại phòng",   true, false, false);
+        addNavTo(catNav, "services",   "services",   "Dịch vụ",      true, true,  false);
+        addNavTo(catNav, "promotions", "promotions", "Khuyến mãi",   true, false, false);
 
-        addNavTo(catNav, "roomtypes",  "🏷️  Loại phòng",       true, false, false);
-        addNavTo(catNav, "services",   "🧴  Dịch vụ",          true, true, false);
-        addNavTo(catNav, "promotions", "🎁  Khuyến mãi",       true, false, false);
-
-        // ── Nav section: Nhân sự ────────────────────────────────────────
+        // ── 3. Section: NHÂN SỰ ──────────────────────────────────────────
         Label hrLabel = new Label("NHÂN SỰ");
         hrLabel.getStyleClass().add("sidebar-section-label");
 
         VBox hrNav = new VBox(2);
-        hrNav.setPadding(new Insets(0, 8, 0, 8));
-
-        addNavTo(hrNav, "staff",       "🧑‍💼  Nhân viên",        true, false, false);
-        addNavTo(hrNav, "shifts",      "⏰  Ca làm việc",      true, false, false);
-        addNavTo(hrNav, "assignments", "📁  Phân ca",          true, false, false);
-        addNavTo(hrNav, "timekeeping", "✅  Chấm công",        true, false, false);
-        addNavTo(hrNav, "users",       "🔐  Tài khoản hệ thống", true, false, false);
+        hrNav.setPadding(new Insets(0, 10, 0, 10));
+        addNavTo(hrNav, "staff",            "staff",            "Nhân viên & Tài khoản", true, true,  false);
+        addNavTo(hrNav, "workshifts",       "workshifts",       "Ca làm việc",            true, true,  false);
+        addNavTo(hrNav, "shiftassignments", "shiftassignments", "Phân ca",                true, true,  false);
+        addNavTo(hrNav, "attendance",       "attendance",       "Chấm công",              true, true,  false);
 
         VBox scrollContent = new VBox();
-        scrollContent.getChildren().addAll(opLabel, nav, catLabel, catNav, hrLabel, hrNav);
-        scrollContent.setStyle("-fx-background-color: transparent; -fx-padding: 0 0 20 0;");
+        scrollContent.getChildren().addAll(opLabel, opNav, catLabel, catNav, hrLabel, hrNav);
+        scrollContent.setStyle("-fx-background-color: #0A0D14; -fx-padding: 0 0 20 0;");
 
         ScrollPane scrollPane = new ScrollPane(scrollContent);
         scrollPane.setFitToWidth(true);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+        scrollPane.setStyle("-fx-background-color: #0A0D14; -fx-background: #0A0D14; -fx-border-color: transparent;");
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
         // ── User footer ──────────────────────────────────────────────────
@@ -113,42 +123,47 @@ public class MainShell extends BorderPane {
     }
 
     private VBox buildUserFooter() {
-        VBox footer = new VBox(6);
+        VBox footer = new VBox(8);
         footer.getStyleClass().add("sidebar-user-footer");
+        footer.setStyle("-fx-background-color: #0A0D14; -fx-border-color: #1E2532 transparent transparent transparent; -fx-border-width: 1 0 0 0; -fx-padding: 14 16;");
 
-        // Avatar
         String fullName = Session.getFullName();
+        String name = (fullName == null || fullName.isBlank()) ? "admin" : fullName;
         String initials = fullName != null && !fullName.isBlank()
                 ? fullName.substring(0, Math.min(2, fullName.length())).toUpperCase()
-                : "?";
+                : "PH";
+
+        HBox userRow = new HBox(10);
+        userRow.setAlignment(Pos.CENTER_LEFT);
 
         Label avatar = new Label(initials);
-        avatar.getStyleClass().add("sidebar-avatar");
+        avatar.setStyle("-fx-background-color: #F59E0B; -fx-text-fill: #0A0D14; -fx-font-weight: 800; -fx-font-size: 11px; -fx-padding: 5 8; -fx-background-radius: 6;");
 
-        String name = (fullName == null || fullName.isBlank()) ? "Nhân viên" : fullName;
+        VBox userText = new VBox(2);
         Label nameLabel = new Label(name);
-        nameLabel.getStyleClass().add("sidebar-user-name");
+        nameLabel.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-weight: 700; -fx-font-size: 12.5px; -fx-text-fill: #FFFFFF;");
 
         Label roleLabel = new Label(roleLabel(Session.getRole()));
-        roleLabel.getStyleClass().add("sidebar-user-role");
+        roleLabel.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 11px; -fx-text-fill: #8C9CB2;");
+        userText.getChildren().addAll(nameLabel, roleLabel);
 
-        HBox userInfo = new HBox(10, avatar, new VBox(2, nameLabel, roleLabel));
-        userInfo.setAlignment(Pos.CENTER_LEFT);
+        userRow.getChildren().addAll(avatar, userText);
 
-        Button logout = new Button("⏻  Đăng xuất");
-        logout.getStyleClass().add("nav-button");
-        logout.setMaxWidth(Double.MAX_VALUE);
-        logout.setStyle("-fx-text-fill: #EF4444; -fx-padding: 6 10;");
+        Button logout = new Button("Đăng xuất");
+        logout.setGraphic(IconUtils.icon("logout", 14, Color.web("#EF4444")));
+        logout.setGraphicTextGap(8);
+        logout.setStyle("-fx-background-color: transparent; -fx-text-fill: #EF4444; -fx-font-family: 'Inter', sans-serif; -fx-font-size: 12px; -fx-font-weight: 600; -fx-cursor: hand; -fx-padding: 4 0;");
         logout.setOnAction(e -> {
             Session.clear();
             Scene loginScene = new Scene(LoginView.build(), 1100, 700);
+            loginScene.setFill(Color.web("#0A0D14"));
             loginScene.getStylesheets().add(
                     MainApp.class.getResource("/com/lotusstay/javafx/theme.css").toExternalForm());
             MainApp.primaryStage.setScene(loginScene);
             MainApp.primaryStage.setMaximized(false);
         });
 
-        footer.getChildren().addAll(userInfo, logout);
+        footer.getChildren().addAll(userRow, logout);
         return footer;
     }
 
@@ -158,11 +173,7 @@ public class MainShell extends BorderPane {
         return l;
     }
 
-    private void addNav(VBox nav, String key, String label, boolean admin, boolean manager, boolean reception) {
-        addNavTo(nav, key, label, admin, manager, reception);
-    }
-
-    private void addNavTo(VBox nav, String key, String label, boolean admin, boolean manager, boolean reception) {
+    private void addNavTo(VBox nav, String key, String iconName, String label, boolean admin, boolean manager, boolean reception) {
         boolean visible = (Session.getRole() == null)
                 || (Session.isAdmin() && admin)
                 || ("MANAGER".equals(Session.getRole()) && manager)
@@ -171,6 +182,9 @@ public class MainShell extends BorderPane {
 
         Button btn = new Button(label);
         btn.getStyleClass().add("nav-button");
+        btn.setGraphic(IconUtils.icon(iconName, 16, Color.web("#8C9CB2")));
+        btn.setGraphicTextGap(12);
+        btn.setAlignment(Pos.CENTER_LEFT);
         btn.setMaxWidth(Double.MAX_VALUE);
         btn.setOnAction(e -> goTo(key));
         navButtons.put(key, btn);
@@ -180,43 +194,73 @@ public class MainShell extends BorderPane {
     private HBox buildTopbar() {
         HBox top = new HBox();
         top.getStyleClass().add("topbar");
+        top.setStyle("-fx-background-color: #0D111A; -fx-border-color: transparent transparent #1E2532 transparent; -fx-border-width: 0 0 1 0; -fx-padding: 14 28;");
         top.setAlignment(Pos.CENTER_LEFT);
 
         VBox titles = new VBox(2);
-        pageTitle.getStyleClass().add("page-title");
+        pageTitle.setStyle("-fx-font-family: 'Montserrat', sans-serif; -fx-font-size: 22px; -fx-font-weight: 800; -fx-text-fill: #FFFFFF;");
         String dayStr = LocalDate.now().format(
                 DateTimeFormatter.ofPattern("EEEE, dd/MM/yyyy", new Locale("vi", "VN")));
         Label date = new Label(dayStr);
-        date.getStyleClass().add("page-date");
+        date.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 13px; -fx-text-fill: #8C9CB2;");
         titles.getChildren().addAll(pageTitle, date);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         // Quick action buttons
-        Button quickBooking = new Button("+ Đặt phòng");
-        quickBooking.getStyleClass().addAll("btn-primary", "btn-sm");
+        Button quickBooking = new Button("Đặt phòng");
+        quickBooking.setGraphic(IconUtils.icon("plus", 12, Color.web("#0A0D14")));
+        quickBooking.setGraphicTextGap(6);
+        quickBooking.setStyle("-fx-font-family: 'Montserrat', sans-serif; -fx-font-weight: 800; -fx-font-size: 12.5px; -fx-background-color: #F59E0B; -fx-text-fill: #0A0D14; -fx-background-radius: 6; -fx-padding: 6 14; -fx-cursor: hand;");
         quickBooking.setOnAction(e -> goTo("bookings"));
 
-        Button quickCheckIn = new Button("✓ Nhận phòng");
-        quickCheckIn.getStyleClass().addAll("btn-outline", "btn-sm");
+        Button quickCheckIn = new Button("Nhận phòng");
+        quickCheckIn.setGraphic(IconUtils.icon("check", 12, Color.web("#FFFFFF")));
+        quickCheckIn.setGraphicTextGap(6);
+        quickCheckIn.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-weight: 600; -fx-font-size: 12.5px; -fx-background-color: #1A2230; -fx-border-color: #334155; -fx-border-width: 1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-text-fill: #FFFFFF; -fx-padding: 6 14; -fx-cursor: hand;");
         quickCheckIn.setOnAction(e -> goTo("rooms"));
 
-        // User pill
+        // User box matching the screenshot
         String fullName = Session.getFullName();
-        String name = (fullName == null || fullName.isBlank()) ? "Nhân viên" : fullName;
-        Label user = new Label("👤  " + name + "  ·  " + roleLabel(Session.getRole()));
-        user.getStyleClass().add("user-pill");
+        String name = (fullName == null || fullName.isBlank()) ? "admin" : fullName;
+
+        HBox userBox = new HBox(10);
+        userBox.setAlignment(Pos.CENTER_LEFT);
+        userBox.setStyle("-fx-background-color: #141A24; -fx-border-color: #232D3F; -fx-border-width: 1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 6 14;");
+
+        Label avatarBox = new Label("A");
+        avatarBox.setStyle("-fx-background-color: #F59E0B; -fx-text-fill: #0A0D14; -fx-font-weight: 800; -fx-font-size: 12px; -fx-padding: 3 8; -fx-background-radius: 4;");
+
+        VBox userMeta = new VBox(1);
+        Label uName = new Label(name);
+        uName.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-weight: 700; -fx-font-size: 12.5px; -fx-text-fill: #FFFFFF;");
+        Label uRole = new Label(roleLabel(Session.getRole()));
+        uRole.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 11px; -fx-text-fill: #8C9CB2;");
+        userMeta.getChildren().addAll(uName, uRole);
+
+        Label powerIcon = new Label("⏻");
+        powerIcon.setStyle("-fx-text-fill: #64748B; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 0 0 0 6;");
+        powerIcon.setOnMouseClicked(e -> {
+            Session.clear();
+            Scene loginScene = new Scene(LoginView.build(), 1100, 700);
+            loginScene.getStylesheets().add(
+                    MainApp.class.getResource("/com/lotusstay/javafx/theme.css").toExternalForm());
+            MainApp.primaryStage.setScene(loginScene);
+            MainApp.primaryStage.setMaximized(false);
+        });
+
+        userBox.getChildren().addAll(avatarBox, userMeta, powerIcon);
 
         HBox quickActions = new HBox(8, quickBooking, quickCheckIn);
         quickActions.setAlignment(Pos.CENTER);
 
-        top.getChildren().addAll(titles, spacer, quickActions, new Region() {{ setMinWidth(16); }}, user);
+        top.getChildren().addAll(titles, spacer, quickActions, new Region() {{ setMinWidth(14); }}, userBox);
         return top;
     }
 
     private String roleLabel(String role) {
-        if (role == null) return "";
+        if (role == null) return "Quản trị viên";
         return switch (role) {
             case "ADMIN" -> "Quản trị viên";
             case "MANAGER" -> "Quản lý";
@@ -226,37 +270,54 @@ public class MainShell extends BorderPane {
     }
 
     private static final Map<String, String> TITLES = Map.ofEntries(
-            Map.entry("dashboard", "Tổng quan"),
-            Map.entry("rooms",     "Sơ đồ phòng"),
-            Map.entry("roomtypes", "Loại phòng"),
-            Map.entry("bookings",  "Đặt phòng"),
-            Map.entry("customers", "Khách hàng"),
-            Map.entry("invoices",  "Hóa đơn"),
-            Map.entry("services",  "Dịch vụ"),
-            Map.entry("promotions","Khuyến mãi"),
-            Map.entry("staff",     "Nhân viên"),
-            Map.entry("shifts",    "Ca làm việc"),
-            Map.entry("assignments","Phân ca làm việc"),
-            Map.entry("timekeeping","Chấm công"),
-            Map.entry("users",     "Tài khoản hệ thống")
+            Map.entry("dashboard",        "Tổng quan hệ thống"),
+            Map.entry("staff",            "Quản lý Nhân viên & Tài khoản"),
+            Map.entry("workshifts",       "Ca làm việc"),
+            Map.entry("shiftassignments", "Phân ca làm việc"),
+            Map.entry("attendance",       "Chấm công"),
+            Map.entry("taikhoan",         "Quản lý Nhân viên & Tài khoản"),
+            Map.entry("customers",        "Quản lý khách hàng"),
+            Map.entry("rooms",            "Sơ đồ phòng"),
+            Map.entry("roomtypes",        "Danh mục loại phòng"),
+            Map.entry("bookings",         "Quản lý đặt phòng & lưu trú"),
+            Map.entry("services",         "Quản lý dịch vụ"),
+            Map.entry("promotions",       "Chương trình khuyến mãi"),
+            Map.entry("invoices",         "Quản lý hóa đơn & tài chính")
     );
 
     public void goTo(String key) {
-        navButtons.forEach((k, b) -> b.getStyleClass().remove("active"));
-        if (navButtons.containsKey(key)) navButtons.get(key).getStyleClass().add("active");
+        navButtons.forEach((k, b) -> {
+            b.getStyleClass().remove("active");
+            if (b.getGraphic() instanceof StackPane sp && !sp.getChildren().isEmpty()) {
+                if (sp.getChildren().get(0) instanceof SVGPath svg) {
+                    svg.setFill(Color.web("#8C9CB2"));
+                }
+            }
+        });
+        if (navButtons.containsKey(key)) {
+            Button activeBtn = navButtons.get(key);
+            activeBtn.getStyleClass().add("active");
+            if (activeBtn.getGraphic() instanceof StackPane sp && !sp.getChildren().isEmpty()) {
+                if (sp.getChildren().get(0) instanceof SVGPath svg) {
+                    svg.setFill(Color.web("#F59E0B"));
+                }
+            }
+        }
         pageTitle.setText(TITLES.getOrDefault(key, ""));
 
         Node view = switch (key) {
-            case "rooms"       -> RoomsView.build(this);
-            case "roomtypes"   -> RoomTypesView.build();
-            case "bookings"    -> BookingsView.build();
-            case "customers"   -> CustomersView.build();
-            case "invoices"    -> InvoicesView.build();
-            case "services"    -> ServicesView.build();
-            case "staff"       -> StaffView.build();
-            case "users"       -> UsersView.build();
-            case "promotions", "shifts", "assignments", "timekeeping" -> new javafx.scene.layout.VBox(new javafx.scene.control.Label("Đang phát triển..."));
-            default            -> DashboardView.build();
+            case "staff", "taikhoan" -> StaffView.build();
+            case "workshifts"       -> WorkShiftView.build();
+            case "shiftassignments" -> ShiftAssignmentView.build();
+            case "attendance"       -> AttendanceView.build();
+            case "customers"        -> CustomersView.build();
+            case "rooms"            -> RoomsView.build(this);
+            case "roomtypes"        -> RoomTypesView.build();
+            case "bookings"         -> BookingsView.build();
+            case "services"         -> ServicesView.build();
+            case "invoices"         -> InvoicesView.build();
+            case "promotions"       -> new javafx.scene.layout.VBox(new javafx.scene.control.Label("Tính năng khuyến mãi đang được cập nhật..."));
+            default                 -> DashboardView.build(this);
         };
         content.getChildren().setAll(view);
     }

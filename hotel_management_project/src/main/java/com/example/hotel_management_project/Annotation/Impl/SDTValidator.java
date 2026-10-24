@@ -1,6 +1,5 @@
 package com.example.hotel_management_project.Annotation.Impl;
 
-import com.example.hotel_management_project.Annotation.CCCD;
 import com.example.hotel_management_project.Annotation.SDT;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

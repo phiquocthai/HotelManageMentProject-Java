@@ -1,10 +1,10 @@
 package com.example.hotel_management_project.Models.Entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "chi_tiet_dich_vu")
@@ -33,4 +33,8 @@ public class BookingServiceDetail {
 
     @Column(name = "don_gia", nullable = false, precision = 12, scale = 0)
     private BigDecimal unitPrice;
+
+    @Column(name = "thoi_gian_su_dung", nullable = false)
+    @Builder.Default
+    private LocalDateTime usedAt = LocalDateTime.now();
 }

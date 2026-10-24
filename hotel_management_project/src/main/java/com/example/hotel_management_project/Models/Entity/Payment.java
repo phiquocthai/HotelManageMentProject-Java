@@ -1,6 +1,7 @@
 package com.example.hotel_management_project.Models.Entity;
 
 import com.example.hotel_management_project.Models.Enums.PaymentMethod;
+import com.example.hotel_management_project.Models.Enums.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -35,6 +36,11 @@ public class Payment extends BaseEntity {
 
     @Column(name = "ma_giao_dich", length = 100)
     private String transactionCode;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trang_thai", nullable = false)
+    @Builder.Default
+    private TransactionStatus status = TransactionStatus.DANG_XU_LY;
 
     @Column(name = "thoi_gian_thanh_toan")
     private LocalDateTime paymentTime;

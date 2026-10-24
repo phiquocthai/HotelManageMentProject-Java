@@ -1,6 +1,5 @@
 package com.example.hotel_management_project.Models.Entity;
 
-
 import com.example.hotel_management_project.Models.Enums.BookingStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -44,6 +43,13 @@ public class Booking extends BaseEntity {
 
     @Column(name = "thoi_gian_tra_thuc_te")
     private LocalDateTime actualCheckOutTime;
+
+    @Column(name = "so_nguoi_o", nullable = false)
+    @Builder.Default
+    private Integer numberOfGuests = 1;
+
+    @Column(name = "ghi_chu", columnDefinition = "TEXT")
+    private String note;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trang_thai", nullable = false)

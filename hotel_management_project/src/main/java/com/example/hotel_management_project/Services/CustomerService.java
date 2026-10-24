@@ -4,7 +4,6 @@ import com.example.hotel_management_project.DTO.Request.CustomerRequest;
 import com.example.hotel_management_project.DTO.Response.CustomerResponse;
 import com.example.hotel_management_project.DTO.Response.PageResponse;
 import org.springframework.data.domain.Pageable;
-import java.util.List;
 
 public interface CustomerService {
     CustomerResponse createCustomer(CustomerRequest request);
