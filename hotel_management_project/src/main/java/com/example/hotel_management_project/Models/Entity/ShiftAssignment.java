@@ -27,17 +27,17 @@ public class ShiftAssignment extends BaseEntity {
     @Column(name = "ma_phan_ca")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ma_nhan_vien", nullable = false)
     private Staff staff;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ma_ca", nullable = false)
     private WorkShift workShift;
 
     @Column(name = "ngay_lam_viec", nullable = false)
     private LocalDate workDate;
 
-    @OneToOne(mappedBy = "shiftAssignment", fetch = FetchType.LAZY)
+    @OneToOne(mappedBy = "shiftAssignment", fetch = FetchType.EAGER)
     private Attendance attendance;
 }
