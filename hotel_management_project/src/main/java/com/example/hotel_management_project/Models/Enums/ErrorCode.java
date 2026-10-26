@@ -43,7 +43,11 @@ public enum ErrorCode {
 
     // Service
     SERVICE_EXISTED(1071, "Dịch vụ đã tồn tại", HttpStatus.BAD_REQUEST),
-    SERVICE_NOT_FOUND(1072, "Dịch vụ không tồn tại", HttpStatus.BAD_REQUEST);
+    SERVICE_NOT_FOUND(1072, "Dịch vụ không tồn tại", HttpStatus.BAD_REQUEST),
+
+    // Shift Assignment
+    SHIFT_ASSIGNMENT_EXISTED(1081, "Phân ca làm việc đã tồn tại", HttpStatus.BAD_REQUEST),
+    SHIFT_ASSIGNMENT_NOT_FOUND(1082, "Phân ca làm việc không tồn tại", HttpStatus.BAD_REQUEST);
 
     private int code;
     private String message;

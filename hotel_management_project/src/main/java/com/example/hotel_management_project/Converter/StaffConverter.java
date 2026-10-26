@@ -36,7 +36,7 @@ public class StaffConverter {
         entity.setEmail(request.getEmail());
         entity.setPhoneNumber(request.getPhoneNumber());
         entity.setFullName(request.getFullName());
-        entity.setJobTitle(request.getJobTitle());
+//        entity.setJobTitle(request.getJobTitle());
         entity.setRole(request.getRole());
         entity.setProfileImage(request.getProfileImage());
         
