@@ -19,6 +19,8 @@ import java.util.stream.Collectors;
  */
 public class StaffView {
 
+    private static final int DEFAULT_PAGE_SIZE = 10;
+
     public static BorderPane build() {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(24));
@@ -47,49 +49,51 @@ public class StaffView {
 
         // ── TOP TOOLBAR ───────────────────────────────────────────────────────
         TextField searchField = new TextField();
-        searchField.setPromptText("🔍  Tìm theo tên đăng nhập, họ tên, email, SĐT...");
+        searchField.setPromptText("🔍  Tìm theo ID, họ tên, email, SĐT...");
         searchField.setPrefWidth(280);
+        searchField.setMinWidth(220);
         searchField.setPrefHeight(38);
 
         ComboBox<String> roleFilter = new ComboBox<>();
-        roleFilter.getItems().addAll("Tất cả chức vụ", "Admin", "Quản lý", "Lễ tân");
-        roleFilter.setValue("Tất cả chức vụ");
+        roleFilter.getItems().addAll("Tất cả vai trò", "Quản trị viên", "Quản lý", "Lễ tân");
+        roleFilter.setValue("Tất cả vai trò");
         roleFilter.setPrefHeight(38);
+        roleFilter.setMinWidth(170);
+        roleFilter.setPrefWidth(170);
 
         ComboBox<String> statusFilter = new ComboBox<>();
         statusFilter.getItems().addAll("Tất cả trạng thái", "Đang hoạt động", "Đã khóa");
         statusFilter.setValue("Tất cả trạng thái");
         statusFilter.setPrefHeight(38);
+        statusFilter.setMinWidth(180);
+        statusFilter.setPrefWidth(180);
 
         Button searchBtn = new Button("Tìm kiếm");
         searchBtn.getStyleClass().add("btn-outline");
         searchBtn.setGraphic(IconUtils.icon("search", 13, javafx.scene.paint.Color.web("#94A3B8")));
         searchBtn.setPrefHeight(38);
-
-        Button resetBtn = new Button("Làm mới");
-        resetBtn.getStyleClass().add("btn-outline");
-        resetBtn.setGraphic(IconUtils.icon("refresh", 13, javafx.scene.paint.Color.web("#94A3B8")));
-        resetBtn.setPrefHeight(38);
+        searchBtn.setMinWidth(Region.USE_PREF_SIZE);
+        searchBtn.setPrefWidth(115);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Button addBtn = new Button("Thêm nhân viên");
-        addBtn.getStyleClass().add("btn-gold");
-        addBtn.setGraphic(IconUtils.icon("plus", 14, javafx.scene.paint.Color.web("#0A0D14")));
-        addBtn.setPrefHeight(38);
-
-        Button toggleBtn = new Button("Khóa / Mở khóa");
-        toggleBtn.getStyleClass().add("btn-outline");
-        toggleBtn.setGraphic(IconUtils.icon("lock", 13, javafx.scene.paint.Color.web("#94A3B8")));
-        toggleBtn.setPrefHeight(38);
 
         Button delSelectedBtn = new Button("Xóa đã chọn");
         delSelectedBtn.getStyleClass().add("btn-danger");
         delSelectedBtn.setGraphic(IconUtils.icon("trash", 13, javafx.scene.paint.Color.web("#EF4444")));
         delSelectedBtn.setPrefHeight(38);
+        delSelectedBtn.setMinWidth(Region.USE_PREF_SIZE);
+        delSelectedBtn.setPrefWidth(130);
 
-        HBox toolbar = new HBox(10, searchField, roleFilter, statusFilter, searchBtn, resetBtn, spacer, toggleBtn, delSelectedBtn, addBtn);
+        Button addBtn = new Button("Thêm nhân viên");
+        addBtn.getStyleClass().add("btn-gold");
+        addBtn.setGraphic(IconUtils.icon("plus", 14, javafx.scene.paint.Color.web("#0A0D14")));
+        addBtn.setPrefHeight(38);
+        addBtn.setMinWidth(175);
+        addBtn.setPrefWidth(175);
+
+        // Thanh toolbar chuẩn: bỏ nút Làm mới và nút Khóa/Mở khóa trên toolbar theo yêu cầu
+        HBox toolbar = new HBox(12, searchField, roleFilter, statusFilter, searchBtn, spacer, delSelectedBtn, addBtn);
         toolbar.setAlignment(Pos.CENTER_LEFT);
 
         // ── TABLE VIEW ────────────────────────────────────────────────────────
@@ -100,89 +104,64 @@ public class StaffView {
         table.setPlaceholder(new Label("Không tìm thấy nhân viên nào phù hợp."));
 
         TableColumn<Staff, String> idCol = new TableColumn<>("ID");
-        idCol.setMinWidth(75);
-        idCol.setPrefWidth(85);
+        idCol.setMinWidth(60);
+        idCol.setPrefWidth(70);
         idCol.setCellValueFactory(d -> new SimpleStringProperty(String.valueOf(d.getValue().id)));
-        idCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER; -fx-font-size: 13.5px; -fx-text-fill: #FFFFFF;");
-
-        TableColumn<Staff, String> codeCol = new TableColumn<>("Mã NV/TK");
-        codeCol.setMinWidth(115);
-        codeCol.setPrefWidth(125);
-        codeCol.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().code != null ? d.getValue().code : String.format("TK%03d", d.getValue().id)));
-        codeCol.setStyle("-fx-font-weight: 800; -fx-text-fill: #F59E0B; -fx-font-size: 13.5px;");
+        idCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER_LEFT; -fx-font-size: 13.5px; -fx-text-fill: #FFFFFF;");
 
         TableColumn<Staff, String> userCol = new TableColumn<>("Tên đăng nhập");
-        userCol.setMinWidth(140);
-        userCol.setPrefWidth(160);
+        userCol.setMinWidth(130);
+        userCol.setPrefWidth(145);
         userCol.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().username != null ? "@" + d.getValue().username : "—"));
-        userCol.setStyle("-fx-font-weight: 700; -fx-text-fill: #38BDF8;");
+        userCol.setStyle("-fx-font-weight: 700; -fx-text-fill: #38BDF8; -fx-font-size: 13.5px;");
 
         TableColumn<Staff, String> nameCol = new TableColumn<>("Họ và tên");
-        nameCol.setMinWidth(180);
-        nameCol.setPrefWidth(200);
+        nameCol.setMinWidth(160);
+        nameCol.setPrefWidth(180);
         nameCol.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().fullName != null ? d.getValue().fullName : "—"));
-        nameCol.setStyle("-fx-font-weight: 800;");
+        nameCol.setStyle("-fx-font-weight: 800; -fx-font-size: 13.5px;");
 
-        // Cột Chức danh (Entity field: jobTitle)
-        TableColumn<Staff, String> jobTitleCol = new TableColumn<>("Chức danh");
-        jobTitleCol.setMinWidth(135);
-        jobTitleCol.setPrefWidth(145);
-        jobTitleCol.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().jobTitle != null && !d.getValue().jobTitle.isBlank() ? d.getValue().jobTitle : roleDisplay(d.getValue().role)));
-        jobTitleCol.setStyle("-fx-font-weight: 600; -fx-text-fill: #CBD5E1;");
-
-        // Cột Vai trò / Quyền hạn (Entity field: role)
+        // Cột Vai trò (Entity field: role)
         TableColumn<Staff, String> roleCol = new TableColumn<>("Vai trò");
-        roleCol.setMinWidth(135);
+        roleCol.setMinWidth(130);
         roleCol.setPrefWidth(145);
-        roleCol.setCellValueFactory(d -> new SimpleStringProperty(roleDisplay(d.getValue().role)));
+        roleCol.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().getRoleDisplay()));
         roleCol.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
                 if (empty || item == null) {
-                    setGraphic(null);
                     setText(null);
+                    setGraphic(null);
                 } else {
-                    Label badge = new Label(item);
-                    badge.getStyleClass().add("badge");
-                    badge.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-padding: 4 12;");
-                    if (item.equalsIgnoreCase("Admin") || item.equalsIgnoreCase("Quản trị viên")) {
-                        badge.getStyleClass().add("badge-dat_truoc");
-                    } else if (item.equalsIgnoreCase("Quản lý")) {
-                        badge.getStyleClass().add("badge-dang_o");
+                    setText(item);
+                    if ("Quản trị viên".equals(item)) {
+                        setStyle("-fx-font-weight: 800; -fx-text-fill: #F59E0B; -fx-font-size: 13px;");
+                    } else if ("Quản lý".equals(item)) {
+                        setStyle("-fx-font-weight: 800; -fx-text-fill: #A78BFA; -fx-font-size: 13px;");
                     } else {
-                        badge.getStyleClass().add("badge-trong");
+                        setStyle("-fx-font-weight: 800; -fx-text-fill: #38BDF8; -fx-font-size: 13px;");
                     }
-                    setGraphic(badge);
-                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    setAlignment(Pos.CENTER);
+                    setAlignment(Pos.CENTER_LEFT);
                 }
             }
         });
 
         TableColumn<Staff, String> phoneCol = new TableColumn<>("SĐT");
-        phoneCol.setMinWidth(125);
-        phoneCol.setPrefWidth(135);
+        phoneCol.setMinWidth(115);
+        phoneCol.setPrefWidth(125);
         phoneCol.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().phone != null ? d.getValue().phone : "—"));
-        phoneCol.setStyle("-fx-font-weight: 600;");
+        phoneCol.setStyle("-fx-font-weight: 600; -fx-font-size: 13.5px;");
 
         TableColumn<Staff, String> emailCol = new TableColumn<>("Email");
-        emailCol.setMinWidth(190);
+        emailCol.setMinWidth(200);
         emailCol.setPrefWidth(220);
         emailCol.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().email != null ? d.getValue().email : "—"));
-
-        // Cột Ca làm việc (Entity field: shift)
-        TableColumn<Staff, String> shiftCol = new TableColumn<>("Ca làm việc");
-        shiftCol.setMinWidth(130);
-        shiftCol.setPrefWidth(140);
-        shiftCol.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().shift != null && !d.getValue().shift.isBlank() ? d.getValue().shift : "—"));
+        emailCol.setStyle("-fx-font-size: 13.5px;");
 
         TableColumn<Staff, String> statusCol = new TableColumn<>("Trạng thái");
         statusCol.setMinWidth(120);
@@ -202,39 +181,69 @@ public class StaffView {
                     badge.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-padding: 4 12;");
                     setGraphic(badge);
                     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    setAlignment(Pos.CENTER);
+                    setAlignment(Pos.CENTER_LEFT);
                 }
             }
         });
-
-        TableColumn<Staff, String> dateCol = new TableColumn<>("Ngày tạo");
-        dateCol.setMinWidth(110);
-        dateCol.setPrefWidth(120);
-        dateCol.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().createdAt != null ? d.getValue().createdAt : "—"));
-
         TableColumn<Staff, Void> actionCol = new TableColumn<>("Thao tác");
-        actionCol.setMinWidth(225);
-        actionCol.setPrefWidth(235);
+        actionCol.setMinWidth(230);
+        actionCol.setPrefWidth(240);
 
-        table.getColumns().addAll(idCol, codeCol, userCol, nameCol, jobTitleCol, roleCol, phoneCol, emailCol, shiftCol, statusCol, dateCol, actionCol);
+        // Bỏ cột 'Mã NV/TK', 'Vai trò', 'Ca làm việc' và 'Ngày tạo' theo yêu cầu
+        table.getColumns().addAll(idCol, userCol, nameCol, roleCol, phoneCol, emailCol, statusCol, actionCol);
 
-        // ── FILTER LOGIC ──────────────────────────────────────────────────────
-        Runnable applyFilters = () -> {
+        // ── Thanh phân trang Footer ───────────────────────────────────────
+        HBox paginationBar = new HBox(16);
+        paginationBar.setAlignment(Pos.CENTER_LEFT);
+        paginationBar.setPadding(new Insets(12, 0, 4, 0));
+
+        Label recordInfoLabel = new Label("Hiển thị 0 nhân viên");
+        recordInfoLabel.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 13px; -fx-text-fill: #94A3B8; -fx-font-weight: 600;");
+
+        Label sizeLabel = new Label("Số bản ghi / trang:");
+        sizeLabel.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 12.5px; -fx-text-fill: #94A3B8; -fx-font-weight: 500;");
+
+        ComboBox<Integer> pageSizeCombo = new ComboBox<>(FXCollections.observableArrayList(5, 10, 15, 20));
+        pageSizeCombo.setValue(DEFAULT_PAGE_SIZE);
+        pageSizeCombo.setStyle(
+                "-fx-background-color: #1E293B; -fx-border-color: rgba(148, 163, 184, 0.3); " +
+                "-fx-border-radius: 6; -fx-background-radius: 6; -fx-pref-height: 28px; -fx-font-size: 12px; -fx-cursor: hand;"
+        );
+
+        HBox leftPagingBox = new HBox(16, recordInfoLabel, sizeLabel, pageSizeCombo);
+        leftPagingBox.setAlignment(Pos.CENTER_LEFT);
+
+        Region pagSpacer = new Region();
+        HBox.setHgrow(pagSpacer, Priority.ALWAYS);
+
+        HBox pageButtonsBox = new HBox(6);
+        pageButtonsBox.setAlignment(Pos.CENTER_RIGHT);
+
+        paginationBar.getChildren().addAll(leftPagingBox, pagSpacer, pageButtonsBox);
+
+        // State phân trang & hàm load
+        int[] currentPage = new int[]{1};
+        int[] currentPageSize = new int[]{DEFAULT_PAGE_SIZE};
+
+        // ── FILTER & PAGING LOGIC ─────────────────────────────────────────────
+        final Runnable[] applyFiltersRef = new Runnable[1];
+        applyFiltersRef[0] = () -> {
             String query = searchField.getText() == null ? "" : searchField.getText().trim().toLowerCase();
             String roleVal = roleFilter.getValue();
             String statusVal = statusFilter.getValue();
 
             List<Staff> res = masterData.stream().filter(s -> {
+                String rDisp = s.getRoleDisplay();
                 boolean matchesQuery = query.isEmpty()
+                        || (s.id != null && String.valueOf(s.id).contains(query))
                         || (s.username != null && s.username.toLowerCase().contains(query))
                         || (s.fullName != null && s.fullName.toLowerCase().contains(query))
                         || (s.email != null && s.email.toLowerCase().contains(query))
                         || (s.phone != null && s.phone.toLowerCase().contains(query))
-                        || (s.code != null && s.code.toLowerCase().contains(query));
+                        || rDisp.toLowerCase().contains(query);
 
                 boolean matchesRole = true;
-                if ("Admin".equals(roleVal)) matchesRole = "ADMIN".equalsIgnoreCase(s.role);
+                if ("Admin".equals(roleVal) || "Quản trị viên".equals(roleVal)) matchesRole = "ADMIN".equalsIgnoreCase(s.role);
                 else if ("Quản lý".equals(roleVal)) matchesRole = "MANAGER".equalsIgnoreCase(s.role);
                 else if ("Lễ tân".equals(roleVal)) matchesRole = "RECEPTION".equalsIgnoreCase(s.role);
 
@@ -245,24 +254,52 @@ public class StaffView {
                 return matchesQuery && matchesRole && matchesStatus;
             }).collect(Collectors.toList());
 
-            filteredData.setAll(res);
+            int totalElements = res.size();
+            int totalPages = Math.max(1, (int) Math.ceil((double) totalElements / currentPageSize[0]));
+            if (currentPage[0] > totalPages) currentPage[0] = totalPages;
+            if (currentPage[0] < 1) currentPage[0] = 1;
+
+            int from = totalElements == 0 ? 0 : (currentPage[0] - 1) * currentPageSize[0];
+            int to = Math.min(from + currentPageSize[0], totalElements);
+
+            filteredData.setAll(totalElements > 0 ? res.subList(from, to) : List.of());
+            table.scrollTo(0);
+
+            if (totalElements == 0) {
+                recordInfoLabel.setText("Hiển thị 0 nhân viên");
+            } else {
+                recordInfoLabel.setText("Hiển thị " + (from + 1) + " – " + to + " trên tổng " + totalElements + " nhân viên");
+            }
+
+            renderPageButtons(pageButtonsBox, currentPage[0], totalPages, newPage -> {
+                currentPage[0] = newPage;
+                applyFiltersRef[0].run();
+            });
+        };
+        Runnable applyFiltersAndPaging = () -> applyFiltersRef[0].run();
+
+        Runnable onFilterChange = () -> {
+            currentPage[0] = 1;
+            applyFiltersAndPaging.run();
         };
 
         Runnable reload = () -> Util.runAsync(ApiService::staff, list -> {
             masterData.setAll(list);
-            applyFilters.run();
+            applyFiltersAndPaging.run();
         });
 
-        searchBtn.setOnAction(e -> applyFilters.run());
-        searchField.setOnAction(e -> applyFilters.run());
-        roleFilter.setOnAction(e -> applyFilters.run());
-        statusFilter.setOnAction(e -> applyFilters.run());
+        searchBtn.setOnAction(e -> onFilterChange.run());
+        searchField.setOnAction(e -> onFilterChange.run());
+        roleFilter.setOnAction(e -> onFilterChange.run());
+        statusFilter.setOnAction(e -> onFilterChange.run());
 
-        resetBtn.setOnAction(e -> {
-            searchField.clear();
-            roleFilter.setValue("Tất cả chức vụ");
-            statusFilter.setValue("Tất cả trạng thái");
-            applyFilters.run();
+        pageSizeCombo.setOnAction(e -> {
+            Integer selectedSize = pageSizeCombo.getValue();
+            if (selectedSize != null && selectedSize != currentPageSize[0]) {
+                currentPageSize[0] = selectedSize;
+                currentPage[0] = 1;
+                applyFiltersAndPaging.run();
+            }
         });
 
         // ── ACTIONS ───────────────────────────────────────────────────────────
@@ -273,24 +310,25 @@ public class StaffView {
             private final HBox box = new HBox(6, editBtn, lockBtn, delBtn);
 
             {
-                editBtn.getStyleClass().add("btn-outline");
-                editBtn.setGraphic(IconUtils.icon("edit", 11, javafx.scene.paint.Color.web("#93C5FD")));
+                editBtn.getStyleClass().add("btn-action-edit");
+                editBtn.setGraphic(IconUtils.icon("edit", 11, javafx.scene.paint.Color.WHITE));
                 editBtn.setGraphicTextGap(5);
-                editBtn.setMinWidth(65);
-                editBtn.setStyle("-fx-padding: 4 8; -fx-font-size: 11.5px; -fx-font-weight: 600; -fx-min-width: 65px;");
+                editBtn.setMinWidth(68);
+                editBtn.setStyle("-fx-padding: 4 9; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 68px;");
 
                 lockBtn.getStyleClass().add("btn-outline");
                 lockBtn.setGraphic(IconUtils.icon("lock", 11, javafx.scene.paint.Color.web("#F59E0B")));
                 lockBtn.setGraphicTextGap(5);
-                lockBtn.setMinWidth(65);
-                lockBtn.setStyle("-fx-padding: 4 8; -fx-font-size: 11.5px; -fx-font-weight: 600; -fx-min-width: 65px;");
+                lockBtn.setMinWidth(68);
+                lockBtn.setStyle("-fx-padding: 4 9; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 68px;");
 
                 delBtn.getStyleClass().add("btn-danger");
-                delBtn.setGraphic(IconUtils.icon("trash", 11, javafx.scene.paint.Color.web("#F87171")));
+                delBtn.setGraphic(IconUtils.icon("trash", 11, javafx.scene.paint.Color.WHITE));
                 delBtn.setGraphicTextGap(5);
-                delBtn.setMinWidth(65);
-                delBtn.setStyle("-fx-padding: 4 8; -fx-font-size: 11.5px; -fx-font-weight: 600; -fx-min-width: 65px;");
-                box.setAlignment(Pos.CENTER);
+                delBtn.setMinWidth(68);
+                delBtn.setStyle("-fx-padding: 4 9; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 68px;");
+                box.setAlignment(Pos.CENTER_LEFT);
+                setAlignment(Pos.CENTER_LEFT);
 
                 editBtn.setOnAction(e -> {
                     Staff s = getTableView().getItems().get(getIndex());
@@ -329,15 +367,6 @@ public class StaffView {
 
         addBtn.setOnAction(e -> openAddDialog(reload));
 
-        toggleBtn.setOnAction(e -> {
-            Staff sel = table.getSelectionModel().getSelectedItem();
-            if (sel == null) {
-                Util.info("Vui lòng chọn 1 nhân viên trong bảng để khóa / mở khóa.");
-                return;
-            }
-            Util.runAsync(() -> ApiService.toggleStaffStatus(sel.id), res -> reload.run());
-        });
-
         delSelectedBtn.setOnAction(e -> {
             Staff sel = table.getSelectionModel().getSelectedItem();
             if (sel == null) {
@@ -354,7 +383,7 @@ public class StaffView {
         // Initial load
         reload.run();
 
-        card.getChildren().addAll(headerRow, toolbar, table);
+        card.getChildren().addAll(headerRow, toolbar, table, paginationBar);
         root.setCenter(card);
         return root;
     }
@@ -387,9 +416,6 @@ public class StaffView {
         roleBox.setValue("Lễ tân (RECEPTION)");
         roleBox.setMaxWidth(Double.MAX_VALUE);
 
-        TextField shift = new TextField();
-        shift.setPromptText("VD: Ca sáng (6h–14h), Ca chiều (14h–22h)...");
-
         GridPane grid = new GridPane();
         grid.setHgap(12);
         grid.setVgap(10);
@@ -405,10 +431,8 @@ public class StaffView {
         grid.add(email, 1, 3);
         grid.add(new Label("Số điện thoại:"), 0, 4);
         grid.add(phone, 1, 4);
-        grid.add(new Label("Chức vụ (*):"), 0, 5);
+        grid.add(new Label("Vai trò (*):"), 0, 5);
         grid.add(roleBox, 1, 5);
-        grid.add(new Label("Ca làm việc:"), 0, 6);
-        grid.add(shift, 1, 6);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
@@ -420,7 +444,6 @@ public class StaffView {
                 String fn = fullName.getText().trim();
                 String em = email.getText().trim();
                 String ph = phone.getText().trim();
-                String sh = shift.getText().trim();
                 String role = roleFromDisplay(roleBox.getValue());
                 String jt = roleDisplay(role);
 
@@ -429,7 +452,7 @@ public class StaffView {
                     return null;
                 }
 
-                Util.runAsync(() -> ApiService.createStaff(u, p, fn, em, ph, jt, role, sh), s -> reload.run());
+                Util.runAsync(() -> ApiService.createStaff(u, p, fn, em, ph, jt, role, null), s -> reload.run());
             }
             return null;
         });
@@ -448,7 +471,6 @@ public class StaffView {
         TextField fullName = new TextField(staff.fullName != null ? staff.fullName : "");
         TextField email = new TextField(staff.email != null ? staff.email : "");
         TextField phone = new TextField(staff.phone != null ? staff.phone : "");
-        TextField shift = new TextField(staff.shift != null ? staff.shift : "");
 
         ComboBox<String> roleBox = new ComboBox<>();
         roleBox.getItems().addAll("Quản trị viên (ADMIN)", "Quản lý (MANAGER)", "Lễ tân (RECEPTION)");
@@ -468,10 +490,8 @@ public class StaffView {
         grid.add(email, 1, 2);
         grid.add(new Label("Số điện thoại:"), 0, 3);
         grid.add(phone, 1, 3);
-        grid.add(new Label("Chức vụ (*):"), 0, 4);
+        grid.add(new Label("Vai trò (*):"), 0, 4);
         grid.add(roleBox, 1, 4);
-        grid.add(new Label("Ca làm việc:"), 0, 5);
-        grid.add(shift, 1, 5);
 
         dialog.getDialogPane().setContent(grid);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
@@ -482,7 +502,6 @@ public class StaffView {
                 String fn = fullName.getText().trim();
                 String em = email.getText().trim();
                 String ph = phone.getText().trim();
-                String sh = shift.getText().trim();
                 String role = roleFromDisplay(roleBox.getValue());
                 String jt = roleDisplay(role);
 
@@ -491,7 +510,7 @@ public class StaffView {
                     return null;
                 }
 
-                Util.runAsync(() -> ApiService.updateStaff(staff.id, u, fn, em, ph, jt, role, sh), s -> reload.run());
+                Util.runAsync(() -> ApiService.updateStaff(staff.id, u, fn, em, ph, jt, role, null), s -> reload.run());
             }
             return null;
         });
@@ -522,5 +541,77 @@ public class StaffView {
             case "MANAGER" -> "Quản lý (MANAGER)";
             default -> "Lễ tân (RECEPTION)";
         };
+    }
+
+    // ── Pagination helpers ────────────────────────────────────────────────
+    private static void renderPageButtons(HBox box, int cur, int total, java.util.function.Consumer<Integer> onSelect) {
+        box.getChildren().clear();
+
+        Button prev = new Button("‹");
+        prev.setStyle(pageButtonStyle(false));
+        prev.setDisable(cur <= 1);
+        prev.setOnAction(e -> onSelect.accept(cur - 1));
+        box.getChildren().add(prev);
+
+        if (total <= 7) {
+            for (int i = 1; i <= total; i++) {
+                box.getChildren().add(createNumBtn(i, i == cur, onSelect));
+            }
+        } else {
+            if (cur <= 4) {
+                for (int i = 1; i <= 4; i++) {
+                    box.getChildren().add(createNumBtn(i, i == cur, onSelect));
+                }
+                box.getChildren().add(createEllipsis());
+                box.getChildren().add(createNumBtn(total, total == cur, onSelect));
+            } else if (cur >= total - 3) {
+                box.getChildren().add(createNumBtn(1, 1 == cur, onSelect));
+                box.getChildren().add(createEllipsis());
+                for (int i = total - 3; i <= total; i++) {
+                    box.getChildren().add(createNumBtn(i, i == cur, onSelect));
+                }
+            } else {
+                box.getChildren().add(createNumBtn(1, 1 == cur, onSelect));
+                box.getChildren().add(createEllipsis());
+                box.getChildren().add(createNumBtn(cur - 1, false, onSelect));
+                box.getChildren().add(createNumBtn(cur, true, onSelect));
+                box.getChildren().add(createNumBtn(cur + 1, false, onSelect));
+                box.getChildren().add(createEllipsis());
+                box.getChildren().add(createNumBtn(total, false, onSelect));
+            }
+        }
+
+        Button next = new Button("›");
+        next.setStyle(pageButtonStyle(false));
+        next.setDisable(cur >= total);
+        next.setOnAction(e -> onSelect.accept(cur + 1));
+        box.getChildren().add(next);
+    }
+
+    private static Button createNumBtn(int page, boolean active, java.util.function.Consumer<Integer> onSelect) {
+        Button b = new Button(String.valueOf(page));
+        b.setStyle(pageButtonStyle(active));
+        b.setOnAction(e -> {
+            if (!active) onSelect.accept(page);
+        });
+        return b;
+    }
+
+    private static Label createEllipsis() {
+        Label l = new Label("…");
+        l.setStyle("-fx-text-fill: #64748B; -fx-padding: 0 4; -fx-font-weight: 700;");
+        return l;
+    }
+
+    private static String pageButtonStyle(boolean active) {
+        if (active) {
+            return "-fx-background-color: #D97706; -fx-text-fill: #FFFFFF; " +
+                    "-fx-font-weight: 700; -fx-min-width: 30px; -fx-min-height: 30px; " +
+                    "-fx-background-radius: 6; -fx-font-size: 12px; -fx-cursor: hand;";
+        }
+        return "-fx-background-color: #1E293B; -fx-text-fill: #94A3B8; " +
+                "-fx-border-color: rgba(148, 163, 184, 0.25); -fx-border-radius: 6; " +
+                "-fx-background-radius: 6; -fx-min-width: 30px; -fx-min-height: 30px; " +
+                "-fx-font-size: 12px; -fx-cursor: hand;";
     }
 }

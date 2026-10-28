@@ -272,6 +272,10 @@
 }
 
 /* ── 5. BUTTONS ──────────────────────────────────────────────────────────── */
+.button {
+    -fx-text-overrun: clip;
+}
+
 .btn-gold, .btn-primary {
     -fx-background-color: #F59E0B;
     -fx-text-fill: #0A0D14;
@@ -282,6 +286,7 @@
     -fx-border-radius: 8;
     -fx-padding: 9 20;
     -fx-cursor: hand;
+    -fx-text-overrun: clip;
     -fx-effect: dropshadow(gaussian, rgba(245, 158, 11, 0.35), 8, 0, 0, 2);
 }
 
@@ -306,6 +311,7 @@
     -fx-font-weight: 600;
     -fx-padding: 8 16;
     -fx-cursor: hand;
+    -fx-text-overrun: clip;
 }
 
 .btn-outline:hover {
@@ -314,45 +320,55 @@
 }
 
 .btn-action-edit {
-    -fx-background-color: #1E2532;
-    -fx-border-color: #334155;
+    -fx-background-color: #0284C7;
+    -fx-border-color: #38BDF8;
     -fx-border-width: 1;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
     -fx-text-fill: #FFFFFF;
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 12px;
-    -fx-font-weight: 600;
-    -fx-padding: 4 10;
+    -fx-font-weight: 700;
+    -fx-padding: 4 11;
     -fx-cursor: hand;
     -fx-text-overrun: clip;
+    -fx-effect: dropshadow(gaussian, rgba(2, 132, 199, 0.35), 6, 0, 0, 1);
 }
 
 .btn-action-edit:hover {
-    -fx-background-color: #2C3649;
-    -fx-border-color: #64748B;
-    -fx-text-fill: #F59E0B;
+    -fx-background-color: #0369A1;
+    -fx-border-color: #7DD3FC;
+    -fx-text-fill: #FFFFFF;
 }
 
-.btn-action-del {
-    -fx-background-color: rgba(239, 68, 68, 0.12);
-    -fx-border-color: rgba(239, 68, 68, 0.25);
+.btn-action-edit:armed {
+    -fx-background-color: #075985;
+}
+
+.btn-action-del, .btn-danger {
+    -fx-background-color: #DC2626;
+    -fx-border-color: #EF4444;
     -fx-border-width: 1;
     -fx-border-radius: 6;
     -fx-background-radius: 6;
-    -fx-text-fill: #F87171;
+    -fx-text-fill: #FFFFFF;
     -fx-font-family: "Inter", sans-serif;
     -fx-font-size: 12px;
-    -fx-font-weight: 600;
-    -fx-padding: 4 10;
+    -fx-font-weight: 700;
+    -fx-padding: 4 11;
     -fx-cursor: hand;
     -fx-text-overrun: clip;
+    -fx-effect: dropshadow(gaussian, rgba(220, 38, 38, 0.35), 6, 0, 0, 1);
 }
 
-.btn-action-del:hover {
-    -fx-background-color: #DC2626;
-    -fx-border-color: #DC2626;
+.btn-action-del:hover, .btn-danger:hover {
+    -fx-background-color: #B91C1C;
+    -fx-border-color: #F87171;
     -fx-text-fill: #FFFFFF;
+}
+
+.btn-action-del:armed, .btn-danger:armed {
+    -fx-background-color: #991B1B;
 }
 
 .table-view .button {
@@ -559,6 +575,7 @@
     -fx-border-radius: 8;
     -fx-padding: 2 4;
     -fx-font-size: 13.5px;
+    -fx-text-overrun: clip;
 }
 
 .combo-box:focused {
@@ -570,6 +587,7 @@
     -fx-background-color: transparent;
     -fx-padding: 6 10;
     -fx-font-size: 13.5px;
+    -fx-text-overrun: clip;
 }
 
 .combo-box-popup .list-view {
@@ -813,4 +831,44 @@
 .login-root {
     -fx-background-color: #070A10;
     -fx-font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+/* ── 16. SLIDER & TEXT FIELD PREMIUM STYLING ────────────────────────────── */
+.slider .track {
+    -fx-background-color: #1E293B;
+    -fx-background-radius: 4px;
+    -fx-pref-height: 5px;
+}
+
+.slider .thumb {
+    -fx-background-color: #F59E0B;
+    -fx-background-radius: 50%;
+    -fx-pref-width: 14px;
+    -fx-pref-height: 14px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(245, 158, 11, 0.4), 6, 0, 0, 1);
+}
+
+.slider .thumb:hover {
+    -fx-background-color: #FBBF24;
+    -fx-scale-x: 1.15;
+    -fx-scale-y: 1.15;
+}
+
+.text-field {
+    -fx-background-color: #141A23;
+    -fx-border-color: #2D3748;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-text-fill: #FFFFFF;
+    -fx-prompt-text-fill: #94A3B8;
+    -fx-padding: 7 12;
+    -fx-font-family: 'Inter', sans-serif;
+    -fx-font-size: 13px;
+}
+
+.text-field:focused {
+    -fx-border-color: #F59E0B;
+    -fx-effect: dropshadow(gaussian, rgba(245, 158, 11, 0.25), 5, 0, 0, 1);
 }

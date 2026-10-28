@@ -6,6 +6,7 @@ import lombok.Data;
 public class WorkShiftResponse {
     private Long id;
     private String name;
+    private String shiftName;
     private String startTime;
     private String endTime;
     private Boolean active;

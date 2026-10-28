@@ -9,6 +9,7 @@ public class Customer {
     public String phone;     // SDT: 10 số
     public String imagePath;
     public boolean active = true;
+    public boolean selected = false;
 
     // Backward compatibility aliases
     public String getCitizenId() { return citizenId; }

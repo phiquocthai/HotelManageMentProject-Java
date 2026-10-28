@@ -43,7 +43,29 @@ public enum ErrorCode {
 
     // Service
     SERVICE_EXISTED(1071, "Dịch vụ đã tồn tại", HttpStatus.BAD_REQUEST),
-    SERVICE_NOT_FOUND(1072, "Dịch vụ không tồn tại", HttpStatus.BAD_REQUEST);
+    SERVICE_NOT_FOUND(1072, "Dịch vụ không tồn tại", HttpStatus.BAD_REQUEST),
+
+    // Promotion
+    PROMOTION_EXISTED(1081, "Khuyến mãi đã tồn tại", HttpStatus.BAD_REQUEST),
+    PROMOTION_NOT_FOUND(1082, "Khuyến mãi không tồn tại", HttpStatus.BAD_REQUEST),
+    INVALID_PROMOTION_DATE(1083, "Ngày kết thúc phải sau hoặc cùng ngày bắt đầu", HttpStatus.BAD_REQUEST),
+
+    // Payment Method
+    PAYMENT_METHOD_EXISTED(1091, "Phương thức thanh toán đã tồn tại", HttpStatus.BAD_REQUEST),
+    PAYMENT_METHOD_NOT_FOUND(1092, "Phương thức thanh toán không tồn tại", HttpStatus.BAD_REQUEST),
+
+    // Shift Assignment
+    SHIFT_ASSIGNMENT_NOT_FOUND(1101, "Phân ca làm việc không tồn tại", HttpStatus.BAD_REQUEST),
+    SHIFT_ASSIGNMENT_EXISTED(1102, "Nhân viên đã được phân vào ca làm việc này trong ngày", HttpStatus.BAD_REQUEST),
+
+    // Attendance
+    ATTENDANCE_NOT_FOUND(1111, "Bản ghi chấm công không tồn tại", HttpStatus.BAD_REQUEST),
+    ATTENDANCE_EXISTED(1112, "Ca làm việc này đã được chấm công", HttpStatus.BAD_REQUEST),
+    INVALID_ATTENDANCE_TIME(1113, "Thời gian check-out phải sau thời gian check-in", HttpStatus.BAD_REQUEST),
+    INVALID_ATTENDANCE_STATUS(1114, "Trạng thái chấm công không hợp lệ", HttpStatus.BAD_REQUEST),
+
+    // Booking Service Detail
+    BOOKING_SERVICE_DETAIL_NOT_FOUND(1121, "Chi tiết dịch vụ không tồn tại", HttpStatus.BAD_REQUEST);
 
     private int code;
     private String message;

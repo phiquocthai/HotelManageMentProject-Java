@@ -43,6 +43,9 @@ public class IconUtils {
             
             // Promotions / Khuyến mãi
             Map.entry("promotions", "M3 2.5a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0v.006c0 .07 0 .27-.038.494H15a1 1 0 0 1 1 1v2a1 1 0 0 1-1 1v7.5a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 14V6.5a1 1 0 0 1-1-1v-2a1 1 0 0 1 1-1h2.038A2.968 2.968 0 0 1 3 2.506V2.5zm1.068.5H7v-.5a1.5 1.5 0 1 0-3 0c0 .085.002.274.068.5zm4.932 0h2.932c.066-.226.068-.415.068-.5a1.5 1.5 0 1 0-3 0v.5zM2 5v1h5V5H2zm7 0v1h5V5H9zm-7 2.5V14a.5.5 0 0 0 .5.5H7V7.5H2zm7 7h4.5a.5.5 0 0 0 .5-.5V7.5H9v7z"),
+
+            // PaymentMethods / Phương thức thanh toán (Credit Card)
+            Map.entry("paymentmethods", "M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4zm2-1a1 1 0 0 0-1 1v1h14V4a1 1 0 0 0-1-1H2zm13 4H1v5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7z"),
             
             // Staff / Nhân viên
             Map.entry("staff", "M4 16s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H4Zm4-5.95a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1h-2v-1h2V2h-4v1H8V2H4v1H2V2a1 1 0 0 1 1-1h11Z"),

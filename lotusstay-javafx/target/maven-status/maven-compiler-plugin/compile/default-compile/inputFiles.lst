@@ -1,34 +1,43 @@
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\MainApp.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Attendance.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Booking.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Customer.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\DashboardStats.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Invoice.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\LoginResponse.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Room.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\RoomType.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\ServiceItem.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\ShiftAssignment.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Staff.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\UserAccount.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\WorkShift.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\net\ApiClient.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\net\ApiService.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\net\Session.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\AttendanceView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\BookingsView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\CustomersView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\DashboardView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\IconUtils.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\InvoicesView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\LoginView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\MainShell.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\RoomsView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\RoomTypesView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\ServicesView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\ShiftAssignmentView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\StaffView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\TaiKhoanView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\UsersView.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\Util.java
-D:\project-java-hotels-management\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\WorkShiftView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\MainApp.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Attendance.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Booking.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\BookingServiceDetail.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Customer.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\DashboardStats.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Invoice.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\LoginResponse.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\PaymentMethodItem.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Promotion.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Room.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\RoomType.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\ServiceItem.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\ShiftAssignment.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\Staff.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\UserAccount.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\model\WorkShift.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\net\ApiClient.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\net\ApiResponse.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\net\ApiService.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\net\PageResponse.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\net\Session.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\AttendanceView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\BookingServiceDetailsView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\BookingsView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\CustomersView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\DashboardView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\IconUtils.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\InvoicesView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\LoginView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\MainShell.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\PaginationHelper.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\PaymentMethodsView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\PromotionsView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\RoomsView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\RoomTypesView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\ServicesView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\ShiftAssignmentView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\StaffView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\TaiKhoanView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\UsersView.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\Util.java
+D:\project hotel-management\HotelManageMentProject-Java\lotusstay-javafx\src\main\java\com\lotusstay\javafx\ui\WorkShiftView.java

@@ -2,17 +2,24 @@ package com.lotusstay.javafx.ui;
 
 import com.lotusstay.javafx.model.Customer;
 import com.lotusstay.javafx.net.ApiService;
+import com.lotusstay.javafx.net.PageResponse;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class CustomersView {
+
+    private static final int DEFAULT_PAGE_SIZE = 10;
 
     public static BorderPane build() {
         BorderPane root = new BorderPane();
@@ -23,7 +30,7 @@ public class CustomersView {
         card.getStyleClass().add("panel");
         VBox.setVgrow(card, Priority.ALWAYS);
 
-        // Header info
+        // 1. Header info
         HBox headerRow = new HBox(12);
         headerRow.setAlignment(Pos.CENTER_LEFT);
 
@@ -36,14 +43,12 @@ public class CustomersView {
 
         headerRow.getChildren().addAll(title, topSpacer);
 
-        // Data collection
-        ObservableList<Customer> masterData = FXCollections.observableArrayList();
-        FilteredList<Customer> filteredData = new FilteredList<>(masterData, p -> true);
-
-        // Top Toolbar (Matching Wireframe Image 2)
+        // 2. Toolbar
         TextField search = new TextField();
-        search.setPromptText("Tìm theo họ tên, số CCCD, SĐT, email...");
-        search.setPrefWidth(320);
+        search.setPromptText("Tìm theo ID, họ tên, số CCCD, SĐT, email...");
+        search.setPrefWidth(360);
+        search.setMinWidth(280);
+        search.setPrefHeight(38);
 
         Button searchBtn = new Button("🔍 Tìm kiếm");
         searchBtn.getStyleClass().add("btn-outline");
@@ -51,137 +56,167 @@ public class CustomersView {
         Button refreshBtn = new Button("🔄 Làm mới");
         refreshBtn.getStyleClass().add("btn-outline");
 
-        Button deleteSelectedBtn = new Button("🗑️ Xóa mục đã chọn");
-        deleteSelectedBtn.getStyleClass().add("btn-danger");
-
         Button addBtn = new Button("+ Thêm khách hàng");
         addBtn.getStyleClass().add("btn-gold");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox toolbar = new HBox(10, search, searchBtn, refreshBtn, spacer, deleteSelectedBtn, addBtn);
+        HBox toolbar = new HBox(10, search, searchBtn, refreshBtn, spacer, addBtn);
         toolbar.setAlignment(Pos.CENTER_LEFT);
 
-        // Filter predicate
-        Runnable applyFilter = () -> {
-            String q = search.getText() == null ? "" : search.getText().trim().toLowerCase();
-            filteredData.setPredicate(c -> {
-                if (q.isEmpty()) return true;
-                boolean matchName = c.fullName != null && c.fullName.toLowerCase().contains(q);
-                boolean matchCode = c.code != null && c.code.toLowerCase().contains(q);
-                boolean matchCitizen = c.citizenId != null && c.citizenId.toLowerCase().contains(q);
-                boolean matchEmail = c.email != null && c.email.toLowerCase().contains(q);
-                boolean matchPhone = c.phone != null && c.phone.toLowerCase().contains(q);
-                return matchName || matchCode || matchCitizen || matchEmail || matchPhone;
-            });
-        };
-
-        search.textProperty().addListener((obs, oldVal, newVal) -> applyFilter.run());
-        searchBtn.setOnAction(e -> applyFilter.run());
-
-        // Table
-        TableView<Customer> table = new TableView<>();
+        // 3. Table
+        ObservableList<Customer> tableData = FXCollections.observableArrayList();
+        TableView<Customer> table = new TableView<>(tableData);
         table.getStyleClass().add("table-view");
-        table.setItems(filteredData);
+        table.setEditable(true);
         VBox.setVgrow(table, Priority.ALWAYS);
         table.setPlaceholder(new Label("Chưa có khách hàng nào trong hệ thống."));
 
         TableColumn<Customer, String> idCol = new TableColumn<>("ID");
-        idCol.setMinWidth(75);
-        idCol.setPrefWidth(85);
-        idCol.setCellValueFactory(d -> new SimpleStringProperty(String.valueOf(d.getValue().id)));
-        idCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER; -fx-font-size: 13.5px; -fx-text-fill: #FFFFFF;");
-
-        TableColumn<Customer, String> codeCol = new TableColumn<>("Mã KH");
-        codeCol.setMinWidth(115);
-        codeCol.setPrefWidth(125);
-        codeCol.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().code != null ? d.getValue().code : String.format("KH%03d", d.getValue().id)));
-        codeCol.setStyle("-fx-font-weight: 800; -fx-text-fill: #F59E0B; -fx-font-size: 13.5px;");
+        idCol.setMinWidth(70);
+        idCol.setPrefWidth(80);
+        idCol.setCellValueFactory(d -> new SimpleStringProperty(
+                d.getValue().id != null ? String.valueOf(d.getValue().id) : "—"));
+        idCol.setStyle("-fx-font-weight: 800; -fx-text-fill: #F59E0B; -fx-font-size: 13px; -fx-alignment: CENTER_LEFT;");
 
         TableColumn<Customer, String> nameCol = new TableColumn<>("Họ và tên");
-        nameCol.setMinWidth(180);
-        nameCol.setPrefWidth(200);
+        nameCol.setMinWidth(170);
+        nameCol.setPrefWidth(190);
         nameCol.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().fullName != null ? d.getValue().fullName : "—"));
-        nameCol.setStyle("-fx-font-weight: 800;");
+        nameCol.setStyle("-fx-font-weight: 700;");
 
         TableColumn<Customer, String> cccdCol = new TableColumn<>("Số CCCD");
-        cccdCol.setMinWidth(150);
-        cccdCol.setPrefWidth(165);
+        cccdCol.setMinWidth(140);
+        cccdCol.setPrefWidth(150);
         cccdCol.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().citizenId != null && !d.getValue().citizenId.isBlank() ? d.getValue().citizenId : "—"));
-        cccdCol.setStyle("-fx-font-weight: 600;");
+        cccdCol.setStyle("-fx-font-weight: 500;");
 
         TableColumn<Customer, String> emailCol = new TableColumn<>("Email");
-        emailCol.setMinWidth(200);
-        emailCol.setPrefWidth(225);
+        emailCol.setMinWidth(190);
+        emailCol.setPrefWidth(210);
         emailCol.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().email != null && !d.getValue().email.isBlank() ? d.getValue().email : "—"));
 
         TableColumn<Customer, String> phoneCol = new TableColumn<>("SĐT");
-        phoneCol.setMinWidth(130);
-        phoneCol.setPrefWidth(140);
+        phoneCol.setMinWidth(120);
+        phoneCol.setPrefWidth(130);
         phoneCol.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().phone != null && !d.getValue().phone.isBlank() ? d.getValue().phone : "—"));
-        phoneCol.setStyle("-fx-font-weight: 600;");
+        phoneCol.setStyle("-fx-font-weight: 500;");
 
-        TableColumn<Customer, String> statusCol = new TableColumn<>("Trạng thái");
-        statusCol.setMinWidth(130);
-        statusCol.setPrefWidth(140);
-        statusCol.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().active ? "Hoạt động" : "Tạm khóa"));
-        statusCol.setCellFactory(col -> new TableCell<>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setGraphic(null);
-                    setText(null);
+        // 4. Thao tác: Sửa, Xóa (Khớp giao diện)
+        TableColumn<Customer, Void> actionCol = new TableColumn<>("Thao tác");
+        actionCol.setMinWidth(160);
+        actionCol.setPrefWidth(170);
+
+        table.getColumns().addAll(idCol, nameCol, cccdCol, emailCol, phoneCol, actionCol);
+
+        // 5. Thanh phân trang Footer (Khớp chuẩn backend & ảnh mẫu)
+        HBox paginationBar = new HBox(16);
+        paginationBar.setAlignment(Pos.CENTER_LEFT);
+        paginationBar.setPadding(new Insets(12, 0, 4, 0));
+
+        Label recordInfoLabel = new Label("Hiển thị 0 khách hàng");
+        recordInfoLabel.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 13px; -fx-text-fill: #94A3B8; -fx-font-weight: 600;");
+
+        // Bộ chọn số lượng bản ghi trên một trang (Page Size) theo đúng backend
+        Label sizeLabel = new Label("Số bản ghi / trang:");
+        sizeLabel.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 12.5px; -fx-text-fill: #94A3B8; -fx-font-weight: 500;");
+
+        ComboBox<Integer> pageSizeCombo = new ComboBox<>(FXCollections.observableArrayList(5, 10, 15, 20));
+        pageSizeCombo.setValue(DEFAULT_PAGE_SIZE);
+        pageSizeCombo.setStyle(
+                "-fx-background-color: #1E293B; -fx-border-color: rgba(148, 163, 184, 0.3); " +
+                "-fx-border-radius: 6; -fx-background-radius: 6; -fx-pref-height: 28px; -fx-font-size: 12px; -fx-cursor: hand;"
+        );
+
+        HBox leftPagingBox = new HBox(12, recordInfoLabel, sizeLabel, pageSizeCombo);
+        leftPagingBox.setAlignment(Pos.CENTER_LEFT);
+
+        Region pagSpacer = new Region();
+        HBox.setHgrow(pagSpacer, Priority.ALWAYS);
+
+        HBox pageButtonsBox = new HBox(6);
+        pageButtonsBox.setAlignment(Pos.CENTER_RIGHT);
+
+        paginationBar.getChildren().addAll(leftPagingBox, pagSpacer, pageButtonsBox);
+
+        // State phân trang
+        int[] currentPage = new int[]{1};
+        int[] currentPageSize = new int[]{DEFAULT_PAGE_SIZE};
+
+        // Hàm tải trang chuyên nghiệp
+        @SuppressWarnings("unchecked")
+        java.util.function.Consumer<Integer>[] loadPageHolder = new java.util.function.Consumer[1];
+
+        loadPageHolder[0] = targetPage -> {
+            currentPage[0] = Math.max(1, targetPage);
+            String q = search.getText() == null ? "" : search.getText().trim();
+            Util.runAsync(() -> ApiService.customerPage(currentPage[0], currentPageSize[0], q), (PageResponse<Customer> page) -> {
+                tableData.setAll(page.getContent() != null ? page.getContent() : List.of());
+                table.scrollTo(0);
+
+                int totalPages = Math.max(1, page.totalPages);
+                long totalElements = page.totalElements;
+                currentPage[0] = page.pageNo;
+
+                // Cập nhật nhãn thông tin bản ghi theo dữ liệu thực từ backend
+                if (totalElements == 0) {
+                    recordInfoLabel.setText("Hiển thị 0 khách hàng");
                 } else {
-                    boolean act = "Hoạt động".equalsIgnoreCase(item);
-                    Label badge = new Label(item);
-                    badge.getStyleClass().addAll("badge", act ? "badge-trong" : "badge-bao_tri");
-                    badge.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-padding: 4 12;");
-                    setGraphic(badge);
-                    setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    setAlignment(Pos.CENTER);
+                    int from = (page.pageNo - 1) * page.pageSize + 1;
+                    int to = (int) Math.min((long) page.pageNo * page.pageSize, totalElements);
+                    recordInfoLabel.setText("Hiển thị " + from + " – " + to + " trên tổng " + totalElements + " khách hàng");
                 }
+
+                // Render các nút phân trang
+                renderPageButtons(pageButtonsBox, currentPage[0], totalPages, newPage -> loadPageHolder[0].accept(newPage));
+            });
+        };
+
+        Runnable loadCurrentPage = () -> loadPageHolder[0].accept(currentPage[0]);
+
+        pageSizeCombo.setOnAction(e -> {
+            Integer selectedSize = pageSizeCombo.getValue();
+            if (selectedSize != null && selectedSize != currentPageSize[0]) {
+                currentPageSize[0] = selectedSize;
+                loadPageHolder[0].accept(1); // đổi pageSize quay về trang đầu
             }
         });
 
-        // Column Thao tác: Sửa, Xóa (hiển thị rõ chữ đầy đủ)
-        TableColumn<Customer, Void> actionCol = new TableColumn<>("Thao tác");
-        actionCol.setMinWidth(180);
-        actionCol.setPrefWidth(190);
+        // Gán hành động cho actionCol
         actionCol.setCellFactory(col -> new TableCell<>() {
             private final Button editBtn = new Button("Sửa");
             private final Button delBtn = new Button("Xóa");
             private final HBox box = new HBox(8, editBtn, delBtn);
 
             {
-                editBtn.getStyleClass().add("btn-outline");
-                editBtn.setGraphic(IconUtils.icon("edit", 12, Color.web("#93C5FD")));
+                editBtn.getStyleClass().add("btn-action-edit");
+                editBtn.setGraphic(IconUtils.icon("edit", 12, Color.WHITE));
                 editBtn.setGraphicTextGap(6);
-                editBtn.setMinWidth(68);
-                editBtn.setStyle("-fx-padding: 4 11; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 68px;");
+                editBtn.setMinWidth(64);
+                editBtn.setStyle("-fx-padding: 3 10; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 64px;");
 
                 delBtn.getStyleClass().add("btn-danger");
-                delBtn.setGraphic(IconUtils.icon("trash", 12, Color.web("#F87171")));
+                delBtn.setGraphic(IconUtils.icon("trash", 12, Color.WHITE));
                 delBtn.setGraphicTextGap(6);
-                delBtn.setMinWidth(68);
-                delBtn.setStyle("-fx-padding: 4 11; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 68px;");
+                delBtn.setMinWidth(64);
+                delBtn.setStyle("-fx-padding: 3 10; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 64px;");
 
-                box.setAlignment(Pos.CENTER);
+                box.setAlignment(Pos.CENTER_LEFT);
+                setAlignment(Pos.CENTER_LEFT);
 
                 editBtn.setOnAction(e -> {
                     Customer c = getTableView().getItems().get(getIndex());
-                    openCustomerDialog(c, () -> reload(masterData, applyFilter));
+                    openCustomerDialog(c, loadCurrentPage);
                 });
 
                 delBtn.setOnAction(e -> {
                     Customer c = getTableView().getItems().get(getIndex());
-                    confirmDelete(c, () -> reload(masterData, applyFilter));
+                    confirmDelete(c, loadCurrentPage);
                 });
             }
 
@@ -192,44 +227,112 @@ public class CustomersView {
             }
         });
 
-        table.getColumns().addAll(idCol, codeCol, nameCol, cccdCol, emailCol, phoneCol, statusCol, actionCol);
-
-        // Reload logic
-        Runnable loadAction = () -> reload(masterData, applyFilter);
-        loadAction.run();
-
+        // Tìm kiếm & Làm mới
+        searchBtn.setOnAction(e -> {
+            currentPage[0] = 1;
+            loadCurrentPage.run();
+        });
+        search.setOnAction(e -> {
+            currentPage[0] = 1;
+            loadCurrentPage.run();
+        });
         refreshBtn.setOnAction(e -> {
             search.clear();
-            loadAction.run();
+            currentPage[0] = 1;
+            loadCurrentPage.run();
         });
 
-        addBtn.setOnAction(e -> openCustomerDialog(null, loadAction));
+        addBtn.setOnAction(e -> openCustomerDialog(null, loadCurrentPage));
 
-        deleteSelectedBtn.setOnAction(e -> {
-            Customer sel = table.getSelectionModel().getSelectedItem();
-            if (sel == null) {
-                Util.info("Vui lòng chọn khách hàng trong bảng để xóa.");
-                return;
-            }
-            confirmDelete(sel, loadAction);
-        });
+        // Load trang đầu tiên
+        loadCurrentPage.run();
 
-        card.getChildren().addAll(headerRow, toolbar, table);
+        card.getChildren().addAll(headerRow, toolbar, table, paginationBar);
         root.setCenter(card);
         return root;
     }
 
-    private static void reload(ObservableList<Customer> masterData, Runnable applyFilter) {
-        Util.runAsync(() -> ApiService.customers(null), list -> {
-            masterData.setAll(list);
-            applyFilter.run();
+    /**
+     * Vẽ thanh nút phân trang kiểu [ < ] [ 1 ] [ 2 ] [ 3 ] [ 4 ] [ ... ] [ > ]
+     */
+    private static void renderPageButtons(HBox box, int cur, int total, java.util.function.Consumer<Integer> onSelect) {
+        box.getChildren().clear();
+
+        // Nút Previous [ < ]
+        Button prev = new Button("‹");
+        prev.setStyle(pageButtonStyle(false));
+        prev.setDisable(cur <= 1);
+        prev.setOnAction(e -> onSelect.accept(cur - 1));
+        box.getChildren().add(prev);
+
+        if (total <= 7) {
+            for (int i = 1; i <= total; i++) {
+                box.getChildren().add(createNumBtn(i, i == cur, onSelect));
+            }
+        } else {
+            // Hiển thị dạng 1 2 3 4 ... total như trong ảnh
+            if (cur <= 4) {
+                for (int i = 1; i <= 4; i++) {
+                    box.getChildren().add(createNumBtn(i, i == cur, onSelect));
+                }
+                box.getChildren().add(createEllipsis());
+                box.getChildren().add(createNumBtn(total, total == cur, onSelect));
+            } else if (cur >= total - 3) {
+                box.getChildren().add(createNumBtn(1, 1 == cur, onSelect));
+                box.getChildren().add(createEllipsis());
+                for (int i = total - 3; i <= total; i++) {
+                    box.getChildren().add(createNumBtn(i, i == cur, onSelect));
+                }
+            } else {
+                box.getChildren().add(createNumBtn(1, 1 == cur, onSelect));
+                box.getChildren().add(createEllipsis());
+                box.getChildren().add(createNumBtn(cur - 1, false, onSelect));
+                box.getChildren().add(createNumBtn(cur, true, onSelect));
+                box.getChildren().add(createNumBtn(cur + 1, false, onSelect));
+                box.getChildren().add(createEllipsis());
+                box.getChildren().add(createNumBtn(total, false, onSelect));
+            }
+        }
+
+        // Nút Next [ > ]
+        Button next = new Button("›");
+        next.setStyle(pageButtonStyle(false));
+        next.setDisable(cur >= total);
+        next.setOnAction(e -> onSelect.accept(cur + 1));
+        box.getChildren().add(next);
+    }
+
+    private static Button createNumBtn(int page, boolean active, java.util.function.Consumer<Integer> onSelect) {
+        Button b = new Button(String.valueOf(page));
+        b.setStyle(pageButtonStyle(active));
+        b.setOnAction(e -> {
+            if (!active) onSelect.accept(page);
         });
+        return b;
+    }
+
+    private static Label createEllipsis() {
+        Label l = new Label("...");
+        l.setStyle("-fx-text-fill: #94A3B8; -fx-font-size: 13px; -fx-font-weight: 700; -fx-padding: 0 4; -fx-alignment: CENTER;");
+        return l;
+    }
+
+    private static String pageButtonStyle(boolean active) {
+        if (active) {
+            // Nền đen đậm / vàng gold nổi bật khớp ảnh
+            return "-fx-background-color: #0F172A; -fx-text-fill: #FFFFFF; -fx-font-weight: 800; " +
+                    "-fx-background-radius: 6; -fx-border-color: #38BDF8; -fx-border-radius: 6; " +
+                    "-fx-border-width: 1.5; -fx-min-width: 32px; -fx-pref-height: 30px; -fx-font-size: 12.5px; -fx-cursor: hand;";
+        }
+        return "-fx-background-color: rgba(30, 41, 59, 0.45); -fx-text-fill: #CBD5E1; -fx-font-weight: 600; " +
+                "-fx-background-radius: 6; -fx-border-color: rgba(148, 163, 184, 0.25); -fx-border-radius: 6; " +
+                "-fx-border-width: 1; -fx-min-width: 32px; -fx-pref-height: 30px; -fx-font-size: 12.5px; -fx-cursor: hand;";
     }
 
     private static void confirmDelete(Customer c, Runnable reload) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         alert.setTitle("Xác nhận xóa khách hàng");
-        alert.setHeaderText("Bạn có chắc chắn muốn xóa khách hàng " + c.fullName + " (" + c.code + ")?");
+        alert.setHeaderText("Bạn có chắc chắn muốn xóa khách hàng " + c.fullName + " (ID: #" + c.id + ")?");
         alert.setContentText("Hành động này sẽ xóa khách hàng khỏi danh sách.");
         alert.showAndWait().filter(b -> b == ButtonType.OK).ifPresent(b -> {
             Util.runAsyncVoid(() -> ApiService.deleteCustomer(c.id), reload);
@@ -243,63 +346,61 @@ public class CustomersView {
         dialog.getDialogPane().getStylesheets().add(
                 CustomersView.class.getResource("/com/lotusstay/javafx/theme.css").toExternalForm());
 
-        TextField code = new TextField(isEdit ? existing.code : "");
-        code.setPromptText("Tự động (VD: KH007)");
-        if (isEdit) code.setDisable(true);
-
         TextField name = new TextField(isEdit ? existing.fullName : "");
-        name.setPromptText("Họ và tên khách hàng (tối đa 30 ký tự)");
+        name.setPromptText("Họ và tên khách hàng");
 
-        TextField idNumber = new TextField(isEdit && existing.citizenId != null ? existing.citizenId : "");
-        idNumber.setPromptText("Số CCCD (12 số)");
+        TextField phone = new TextField(isEdit ? existing.phone : "");
+        phone.setPromptText("Số điện thoại (10 chữ số)");
 
-        TextField phone = new TextField(isEdit && existing.phone != null ? existing.phone : "");
-        phone.setPromptText("Số điện thoại liên hệ (10 số)");
+        TextField email = new TextField(isEdit ? existing.email : "");
+        email.setPromptText("Địa chỉ email");
 
-        TextField email = new TextField(isEdit && existing.email != null ? existing.email : "");
-        email.setPromptText("Email (VD: khachhang@gmail.com)");
+        TextField cccd = new TextField(isEdit ? existing.citizenId : "");
+        cccd.setPromptText("Số CCCD (12 chữ số)");
 
-        VBox form = new VBox(10,
-                labeledBox("Mã khách hàng", code),
-                labeledBox("Họ và tên (*)", name),
-                labeledBox("Số CCCD (so_CCCD)", idNumber),
-                labeledBox("Số điện thoại (SDT)", phone),
-                labeledBox("Địa chỉ Email", email)
-        );
-        form.setPadding(new Insets(16));
-        form.setPrefWidth(420);
+        GridPane gp = new GridPane();
+        gp.setHgap(12);
+        gp.setVgap(12);
+        gp.setPadding(new Insets(20));
 
-        dialog.getDialogPane().setContent(form);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
+        int row = 0;
+        if (isEdit) {
+            TextField idField = new TextField("#" + existing.id);
+            idField.setDisable(true);
+            gp.add(new Label("ID:"), 0, row); gp.add(idField, 1, row++);
+        }
+        gp.add(new Label("Họ và tên:"), 0, row); gp.add(name, 1, row++);
+        gp.add(new Label("Số điện thoại:"), 0, row); gp.add(phone, 1, row++);
+        gp.add(new Label("Email:"), 0, row); gp.add(email, 1, row++);
+        gp.add(new Label("Số CCCD:"), 0, row); gp.add(cccd, 1, row++);
+
+        dialog.getDialogPane().setContent(gp);
+        ButtonType saveBtn = new ButtonType(isEdit ? "Cập nhật" : "Lưu", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(saveBtn, ButtonType.CANCEL);
 
         dialog.setResultConverter(bt -> {
-            if (bt == ButtonType.OK) {
+            if (bt == saveBtn) {
                 String fullName = name.getText().trim();
-                if (fullName.isBlank()) {
-                    Util.error("Họ và tên khách hàng không được để trống.");
-                    return null;
-                }
-                String cccdVal = idNumber.getText().trim();
                 String phoneVal = phone.getText().trim();
                 String emailVal = email.getText().trim();
-                String codeVal = code.getText().trim();
+                String cccdVal = cccd.getText().trim();
+
+                if (fullName.isEmpty()) {
+                    Util.error("Họ và tên không được để trống.");
+                    return null;
+                }
 
                 if (isEdit) {
-                    Util.runAsync(() -> ApiService.updateCustomer(existing.id, codeVal, fullName, phoneVal, emailVal, cccdVal),
+                    Util.runAsync(() -> ApiService.updateCustomer(existing.id, null, fullName, phoneVal, emailVal, cccdVal),
                             c -> reload.run());
                 } else {
-                    Util.runAsync(() -> ApiService.createCustomer(codeVal, fullName, phoneVal, emailVal, cccdVal),
+                    Util.runAsync(() -> ApiService.createCustomer(fullName, phoneVal, emailVal, cccdVal),
                             c -> reload.run());
                 }
             }
             return null;
         });
-        dialog.showAndWait();
-    }
 
-    private static VBox labeledBox(String label, javafx.scene.Node field) {
-        Label l = new Label(label);
-        l.getStyleClass().add("form-label");
-        return new VBox(4, l, field);
+        dialog.showAndWait();
     }
 }

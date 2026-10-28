@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Giao diện Sơ đồ phòng (Room Grid Diagram) - chuẩn theo thiết kế Dark PMS Luxury.
@@ -38,6 +39,7 @@ public class RoomsView {
         // Data collection
         ObservableList<Room> masterData = FXCollections.observableArrayList();
         FilteredList<Room> filteredData = new FilteredList<>(masterData, p -> true);
+        ObservableList<Room> pagedData = FXCollections.observableArrayList();
 
         // ── 1. TOP TOOLBAR: LEGEND & ACTIONS (Khớp 100% Screenshot) ────────────
         HBox topBar = new HBox(16);
@@ -106,46 +108,106 @@ public class RoomsView {
 
         // Bộ lọc khi ở chế độ bảng
         TextField search = new TextField();
-        search.setPromptText("Tìm theo số phòng, mã phòng...");
+        search.setPromptText("Tìm theo số phòng, ID...");
         search.setPrefWidth(220);
 
         ComboBox<String> typeFilter = new ComboBox<>();
         typeFilter.getItems().add("Tất cả loại phòng");
         typeFilter.setValue("Tất cả loại phòng");
-        typeFilter.setPrefWidth(160);
+        typeFilter.setMinWidth(180);
+        typeFilter.setPrefWidth(180);
 
         ComboBox<String> statusFilter = new ComboBox<>();
         statusFilter.getItems().addAll("Tất cả trạng thái", "Trống", "Đang ở", "Đang dọn", "Bảo trì");
         statusFilter.setValue("Tất cả trạng thái");
-        statusFilter.setPrefWidth(140);
+        statusFilter.setMinWidth(180);
+        statusFilter.setPrefWidth(180);
 
         HBox filterBar = new HBox(10, search, typeFilter, statusFilter);
         filterBar.setAlignment(Pos.CENTER_LEFT);
 
         TableView<Room> table = new TableView<>();
         table.getStyleClass().add("table-view");
-        table.setItems(filteredData);
+        table.setItems(pagedData);
         VBox.setVgrow(table, Priority.ALWAYS);
         table.setPlaceholder(new Label("Không có phòng nào phù hợp."));
+
+        // ── Pagination Bar & Logic ────────────────────────────────────────────
+        int[] currentPage = new int[]{1};
+        int[] currentPageSize = new int[]{PaginationHelper.DEFAULT_PAGE_SIZE};
+        PaginationHelper.PaginationBar paginationBar = new PaginationHelper.PaginationBar("phòng");
+
+        final Runnable[] applyTableFilterRef = new Runnable[1];
+        applyTableFilterRef[0] = () -> {
+            String q = search.getText() == null ? "" : search.getText().trim().toLowerCase();
+            String typeVal = typeFilter.getValue();
+            String stVal = statusFilter.getValue();
+
+            List<Room> res = masterData.stream().filter(r -> {
+                boolean matchSearch = q.isEmpty()
+                        || (r.id != null && String.valueOf(r.id).contains(q))
+                        || (r.number != null && r.number.toLowerCase().contains(q));
+
+                boolean matchType = true;
+                if (typeVal != null && !"Tất cả loại phòng".equals(typeVal)) {
+                    matchType = r.roomType != null && typeVal.equalsIgnoreCase(r.roomType.name);
+                }
+
+                boolean matchStatus = true;
+                if (stVal != null && !"Tất cả trạng thái".equals(stVal)) {
+                    matchStatus = stVal.equalsIgnoreCase(r.statusLabel());
+                }
+
+                return matchSearch && matchType && matchStatus;
+            }).collect(Collectors.toList());
+
+            int totalElements = res.size();
+            int totalPages = Math.max(1, (int) Math.ceil((double) totalElements / currentPageSize[0]));
+            if (currentPage[0] > totalPages) currentPage[0] = totalPages;
+            if (currentPage[0] < 1) currentPage[0] = 1;
+
+            int from = totalElements == 0 ? 0 : (currentPage[0] - 1) * currentPageSize[0];
+            int to = Math.min(from + currentPageSize[0], totalElements);
+
+            pagedData.setAll(totalElements > 0 ? res.subList(from, to) : List.of());
+            table.scrollTo(0);
+
+            paginationBar.update(currentPage[0], currentPageSize[0], totalElements, newPage -> {
+                currentPage[0] = newPage;
+                applyTableFilterRef[0].run();
+            });
+        };
+        Runnable applyTableFilter = () -> applyTableFilterRef[0].run();
+
+        Runnable onFilterChange = () -> {
+            currentPage[0] = 1;
+            applyTableFilter.run();
+        };
+
+        search.textProperty().addListener((obs, oldV, newV) -> onFilterChange.run());
+        typeFilter.valueProperty().addListener((obs, oldV, newV) -> onFilterChange.run());
+        statusFilter.valueProperty().addListener((obs, oldV, newV) -> onFilterChange.run());
+
+        paginationBar.getPageSizeCombo().setOnAction(e -> {
+            Integer selectedSize = paginationBar.getPageSizeCombo().getValue();
+            if (selectedSize != null && selectedSize != currentPageSize[0]) {
+                currentPageSize[0] = selectedSize;
+                currentPage[0] = 1;
+                applyTableFilter.run();
+            }
+        });
 
         TableColumn<Room, String> idCol = new TableColumn<>("ID");
         idCol.setMinWidth(75);
         idCol.setPrefWidth(85);
         idCol.setCellValueFactory(d -> new SimpleStringProperty(String.valueOf(d.getValue().id)));
-        idCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER; -fx-font-size: 13.5px; -fx-text-fill: #FFFFFF;");
-
-        TableColumn<Room, String> codeCol = new TableColumn<>("Mã phòng");
-        codeCol.setMinWidth(115);
-        codeCol.setPrefWidth(125);
-        codeCol.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().code != null ? d.getValue().code : "P" + d.getValue().number));
-        codeCol.setStyle("-fx-font-weight: 800; -fx-text-fill: #F59E0B; -fx-font-size: 13.5px;");
+        idCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER_LEFT; -fx-font-size: 13.5px; -fx-text-fill: #FFFFFF;");
 
         TableColumn<Room, String> numberCol = new TableColumn<>("Số phòng");
         numberCol.setMinWidth(105);
         numberCol.setPrefWidth(115);
         numberCol.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().number));
-        numberCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER; -fx-font-size: 14px; -fx-text-fill: #FFFFFF;");
+        numberCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER_LEFT; -fx-font-size: 14px; -fx-text-fill: #FFFFFF;");
 
         TableColumn<Room, String> typeCol = new TableColumn<>("Loại phòng");
         typeCol.setMinWidth(180);
@@ -158,7 +220,7 @@ public class RoomsView {
         floorCol.setMinWidth(85);
         floorCol.setPrefWidth(95);
         floorCol.setCellValueFactory(d -> new SimpleStringProperty(String.valueOf(d.getValue().floor != null ? d.getValue().floor : 1)));
-        floorCol.setStyle("-fx-font-weight: 700; -fx-alignment: CENTER;");
+        floorCol.setStyle("-fx-font-weight: 700; -fx-alignment: CENTER_LEFT;");
 
         TableColumn<Room, String> statusCol = new TableColumn<>("Trạng thái");
         statusCol.setMinWidth(130);
@@ -178,7 +240,7 @@ public class RoomsView {
                     badge.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-padding: 4 12;");
                     setGraphic(badge);
                     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    setAlignment(Pos.CENTER);
+                    setAlignment(Pos.CENTER_LEFT);
                 }
             }
         });
@@ -198,19 +260,20 @@ public class RoomsView {
             private final HBox box = new HBox(8, editBtn, delBtn);
 
             {
-                editBtn.getStyleClass().add("btn-outline");
-                editBtn.setGraphic(IconUtils.icon("edit", 12, Color.web("#93C5FD")));
+                editBtn.getStyleClass().add("btn-action-edit");
+                editBtn.setGraphic(IconUtils.icon("edit", 12, Color.WHITE));
                 editBtn.setGraphicTextGap(6);
                 editBtn.setMinWidth(68);
                 editBtn.setStyle("-fx-padding: 4 11; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 68px;");
 
                 delBtn.getStyleClass().add("btn-danger");
-                delBtn.setGraphic(IconUtils.icon("trash", 12, Color.web("#F87171")));
+                delBtn.setGraphic(IconUtils.icon("trash", 12, Color.WHITE));
                 delBtn.setGraphicTextGap(6);
                 delBtn.setMinWidth(68);
                 delBtn.setStyle("-fx-padding: 4 11; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 68px;");
 
-                box.setAlignment(Pos.CENTER);
+                box.setAlignment(Pos.CENTER_LEFT);
+                setAlignment(Pos.CENTER_LEFT);
 
                 editBtn.setOnAction(e -> {
                     Room r = getTableView().getItems().get(getIndex());
@@ -230,8 +293,8 @@ public class RoomsView {
             }
         });
 
-        table.getColumns().addAll(idCol, codeCol, numberCol, typeCol, floorCol, statusCol, noteCol, actionCol);
-        tableContainer.getChildren().addAll(filterBar, table);
+        table.getColumns().addAll(idCol, numberCol, typeCol, floorCol, statusCol, noteCol, actionCol);
+        tableContainer.getChildren().addAll(filterBar, table, paginationBar);
 
         // ── 4. RENDER VÀ ĐỒNG BỘ SƠ ĐỒ THẺ PHÒNG ──────────────────────────────
         Runnable refreshGrid = () -> {
@@ -239,6 +302,11 @@ public class RoomsView {
             for (Room r : filteredData) {
                 roomGrid.getChildren().add(buildDiagramCard(r, shell, () -> reload(masterData, null)));
             }
+        };
+
+        Runnable refreshAll = () -> {
+            refreshGrid.run();
+            applyTableFilter.run();
         };
 
         // Chuyển đổi giữa Sơ đồ phòng và Bảng
@@ -255,10 +323,11 @@ public class RoomsView {
             gridScroll.setManaged(false);
             tableContainer.setVisible(true);
             tableContainer.setManaged(true);
+            applyTableFilter.run();
         });
 
         // Tải dữ liệu ban đầu
-        Runnable loadAction = () -> reload(masterData, refreshGrid);
+        Runnable loadAction = () -> reload(masterData, refreshAll);
         loadAction.run();
 
         // Nút thêm phòng
@@ -430,10 +499,6 @@ public class RoomsView {
         dialog.getDialogPane().getStylesheets().add(
                 RoomsView.class.getResource("/com/lotusstay/javafx/theme.css").toExternalForm());
 
-        TextField code = new TextField(isEdit ? existing.code : "");
-        code.setPromptText("Tự động (VD: P015)");
-        if (isEdit) code.setDisable(true);
-
         TextField number = new TextField(isEdit ? existing.number : "");
         number.setPromptText("Số phòng (VD: 101, tối đa 5 ký tự)");
 
@@ -460,7 +525,6 @@ public class RoomsView {
         notes.setPrefRowCount(3);
 
         VBox form = new VBox(10,
-                labeledBox("Mã phòng", code),
                 labeledBox("Số phòng (so_phong) (*)", number),
                 labeledBox("Loại phòng (*)", typeBox),
                 labeledBox("Tầng (tang) (*)", floor),
@@ -492,16 +556,15 @@ public class RoomsView {
                     return null;
                 }
 
-                String codeVal = code.getText().trim();
                 Long typeId = typeBox.getValue().id;
                 String st = statusBox.getValue();
                 String noteVal = notes.getText().trim();
 
                 if (isEdit) {
-                    Util.runAsync(() -> ApiService.updateRoom(existing.id, codeVal, numVal, typeId, fl, st, noteVal),
+                    Util.runAsync(() -> ApiService.updateRoom(existing.id, null, numVal, typeId, fl, st, noteVal),
                             r -> reload.run());
                 } else {
-                    Util.runAsync(() -> ApiService.createRoom(codeVal, numVal, typeId, fl, st, noteVal),
+                    Util.runAsync(() -> ApiService.createRoom(null, numVal, typeId, fl, st, noteVal),
                             r -> reload.run());
                 }
             }

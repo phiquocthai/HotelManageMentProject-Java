@@ -1,9 +1,5 @@
 package com.example.hotel_management_project.DTO.Request;
 
-
-
-
-import com.example.hotel_management_project.Models.Entity.BaseEntity;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,12 +9,11 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+@Data
 @Builder
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PromotionRequest extends BaseEntity {
+public class PromotionRequest {
 
     @NotBlank(message = "Mã khuyến mãi không được để trống")
     @Size(max = 30, message = "Mã khuyến mãi không được vượt quá 30 ký tự")

@@ -1,36 +1,54 @@
 package com.example.hotel_management_project.Converter;
 
 import com.example.hotel_management_project.DTO.Request.RoomRequest;
-import com.example.hotel_management_project.DTO.Request.RoomTypeRequest;
 import com.example.hotel_management_project.DTO.Response.RoomResponse;
 import com.example.hotel_management_project.Models.Entity.Room;
 import com.example.hotel_management_project.Models.Entity.RoomType;
-import org.modelmapper.ModelMapper;
+import com.example.hotel_management_project.Models.Enums.RoomStatus;
 import org.springframework.stereotype.Component;
 
 @Component
 public class RoomConverter {
-    private final ModelMapper modelMapper;
 
-    public RoomConverter(ModelMapper modelMapper) {
-        this.modelMapper = modelMapper;
+    public Room toRoomEntity(RoomRequest request, RoomType roomType) {
+        RoomStatus status = RoomStatus.fromLabel(request.getStatus());
+        return Room.builder()
+                .roomNumber(request.getRoomNumber())
+                .roomType(roomType)
+                .floor(request.getFloor())
+                .status(status)
+                .note(request.getNote())
+                .active(true)
+                .build();
     }
 
-    public Room toRoomEntity(RoomRequest roomRequest) {
-        Room roomEntity = modelMapper.map(roomRequest, Room.class);
-        return roomEntity;
+    public RoomResponse toRoomResponse(Room entity) {
+        if (entity == null) return null;
+        RoomResponse response = new RoomResponse();
+        response.setId(entity.getId());
+        response.setRoomNumber(entity.getRoomNumber());
+        response.setFloor(entity.getFloor());
+        response.setStatus(entity.getStatus() != null ? entity.getStatus().getLabel() : null);
+        if (entity.getRoomType() != null) {
+            response.setRoomTypeName(entity.getRoomType().getName());
+            response.setImagePath(entity.getRoomType().getImagePath());
+        }
+        response.setNote(entity.getNote());
+        response.setCreatedBy(entity.getCreatedBy());
+        response.setCreatedAt(entity.getCreatedAt());
+        response.setModifiedBy(entity.getModifiedBy());
+        response.setModifiedAt(entity.getModifiedAt());
+        response.setActive(entity.getActive());
+        return response;
     }
 
-    public RoomResponse toRoomResponse(Room roomEntity) {
-        RoomResponse roomResponse = modelMapper.map(roomEntity, RoomResponse.class);
-
-        return roomResponse;
-    }
-
-    public void updateEntity(RoomTypeRequest request, RoomType entity) {
-        entity.setName(request.getName());
-        entity.setBasePrice(request.getBasePrice());
-        entity.setMaxOccupancy(request.getMaxOccupancy());
-        entity.setImagePath(request.getImagePath());
+    public void updateEntity(RoomRequest request, Room entity, RoomType roomType) {
+        entity.setRoomNumber(request.getRoomNumber());
+        entity.setRoomType(roomType);
+        entity.setFloor(request.getFloor());
+        if (request.getStatus() != null) {
+            entity.setStatus(RoomStatus.fromLabel(request.getStatus()));
+        }
+        entity.setNote(request.getNote());
     }
 }

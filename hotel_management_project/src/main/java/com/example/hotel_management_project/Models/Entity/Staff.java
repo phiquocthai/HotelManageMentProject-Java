@@ -15,8 +15,8 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
-public class Staff extends BaseEntity {
+@Builder
+public class Staff {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,9 +39,6 @@ public class Staff extends BaseEntity {
     // Staff information
     @Column(name = "ho_ten", nullable = false, length = 30)
     private String fullName;
-
-    @Column(name = "chuc_danh", nullable = false, length = 50)
-    private String jobTitle;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "vai_tro", nullable = false)

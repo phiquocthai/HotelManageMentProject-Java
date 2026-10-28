@@ -1,6 +1,5 @@
 package com.example.hotel_management_project.Models.Entity;
 
-import com.example.hotel_management_project.Models.Enums.PaymentMethod;
 import com.example.hotel_management_project.Models.Enums.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,14 +26,14 @@ public class Payment extends BaseEntity {
     @JoinColumn(name = "ma_hoa_don", nullable = false)
     private Invoice invoice;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "phuong_thuc", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ma_phuong_thuc", nullable = false)
     private PaymentMethod paymentMethod;
 
     @Column(name = "so_tien", nullable = false, precision = 12, scale = 0)
     private BigDecimal amount;
 
-    @Column(name = "ma_giao_dich", length = 100)
+    @Column(name = "ma_giao_dich", length = 16)
     private String transactionCode;
 
     @Enumerated(EnumType.STRING)

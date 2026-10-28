@@ -1,6 +1,7 @@
 package com.lotusstay.javafx.ui;
 
 import com.lotusstay.javafx.MainApp;
+import com.lotusstay.javafx.model.LoginResponse;
 import com.lotusstay.javafx.net.ApiClient;
 import com.lotusstay.javafx.net.ApiService;
 import com.lotusstay.javafx.net.Session;
@@ -161,15 +162,15 @@ public class LoginView {
                 "-fx-padding: 0 15; -fx-font-size: 13.5px; -fx-font-family: 'Inter', sans-serif; " +
                 "-fx-effect: dropshadow(gaussian, rgba(245, 158, 11, 0.35), 10, 0, 0, 0);";
 
-        // Username Field
+        // Username / Email / Phone Field
         HBox userLabelBox = new HBox(7,
                 IconUtils.icon("person-badge", 13, Color.web("#F59E0B")),
-                createFieldLabel("Tài khoản / Mã nhân viên")
+                createFieldLabel("Tài khoản / Email / Số điện thoại")
         );
         userLabelBox.setAlignment(Pos.CENTER_LEFT);
 
-        TextField userField = new TextField();
-        userField.setPromptText("VD: admin01, quanly01, letan01...");
+        TextField userField = new TextField("quocthai_admin");
+        userField.setPromptText("Tên tài khoản, email hoặc số điện thoại...");
         userField.setPrefHeight(44);
         userField.setStyle(defaultFieldStyle);
         userField.focusedProperty().addListener((obs, wasFocused, isFocused) ->
@@ -183,6 +184,7 @@ public class LoginView {
         passLabelBox.setAlignment(Pos.CENTER_LEFT);
 
         PasswordField passField = new PasswordField();
+        passField.setText("123");
         passField.setPromptText("Nhập mật khẩu truy cập...");
         passField.setPrefHeight(44);
         passField.setStyle(defaultFieldStyle);
@@ -232,17 +234,6 @@ public class LoginView {
         loginBtn.setOnMousePressed(e -> loginBtn.setStyle(btnPressed));
         loginBtn.setOnMouseReleased(e -> loginBtn.setStyle(loginBtn.isHover() ? btnHover : btnNormal));
 
-        // ── Quick Demo Login Chips ────────────────────────────────────────────
-        Label hintTitle = new Label("Tài khoản mẫu (Click để chọn nhanh):");
-        hintTitle.setStyle("-fx-text-fill: #8C9CB2; -fx-font-size: 11.5px; -fx-font-weight: 600; -fx-font-family: 'Inter', sans-serif;");
-
-        Button fillAdmin = createDemoChip("Quản trị viên", "admin01 / admin123", "admin01", "admin123", userField, passField);
-        Button fillReception = createDemoChip("Lễ tân", "letan01 / letan123", "letan01", "letan123", userField, passField);
-
-        HBox hintBox = new HBox(8, fillAdmin, fillReception);
-        hintBox.setAlignment(Pos.CENTER_LEFT);
-        VBox quickHints = new VBox(7, hintTitle, hintBox);
-
         // ── Login Logic Execution ─────────────────────────────────────────────
         Runnable doLogin = () -> {
             errorBox.setVisible(false);
@@ -259,7 +250,7 @@ public class LoginView {
             loginBtn.setText("ĐANG XÁC THỰC...");
             new Thread(() -> {
                 try {
-                    var res = ApiService.login(u, p);
+                    LoginResponse res = ApiService.login(u, p);
                     Session.set(res.token, res.userId, res.username, res.fullName, res.role);
                     Platform.runLater(() -> {
                         Scene shellScene = new Scene(MainShell.build(), 1280, 780);
@@ -285,7 +276,7 @@ public class LoginView {
         passField.setOnAction(e -> doLogin.run());
         userField.setOnAction(e -> passField.requestFocus());
 
-        rightPanel.getChildren().addAll(headingBox, userBox, passBox, errorBox, loginBtn, quickHints);
+        rightPanel.getChildren().addAll(headingBox, userBox, passBox, errorBox, loginBtn);
 
         container.getChildren().addAll(leftPanel, rightPanel);
         overlay.getChildren().add(container);
@@ -319,33 +310,6 @@ public class LoginView {
         HBox box = new HBox(10, iconBadge, textCol);
         box.setAlignment(Pos.CENTER_LEFT);
         return box;
-    }
-
-    private static Button createDemoChip(String role, String creds, String username, String password, TextField uField, PasswordField pField) {
-        Button btn = new Button();
-        Node keyIcon = IconUtils.icon("key", 11.5, Color.web("#F59E0B"));
-        Label roleLbl = new Label(role + ":");
-        roleLbl.setStyle("-fx-text-fill: #FBBF24; -fx-font-weight: 700; -fx-font-size: 11px; -fx-font-family: 'Inter', sans-serif;");
-        Label credLbl = new Label(creds);
-        credLbl.setStyle("-fx-text-fill: #CBD5E1; -fx-font-size: 11px; -fx-font-family: 'Inter', sans-serif;");
-        HBox content = new HBox(5, keyIcon, roleLbl, credLbl);
-        content.setAlignment(Pos.CENTER);
-        btn.setGraphic(content);
-
-        String normal = "-fx-background-color: rgba(255, 255, 255, 0.05); -fx-border-color: rgba(255, 255, 255, 0.10); " +
-                "-fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand; -fx-padding: 5 10;";
-        String hover = "-fx-background-color: rgba(245, 158, 11, 0.12); -fx-border-color: rgba(245, 158, 11, 0.45); " +
-                "-fx-border-radius: 7; -fx-background-radius: 7; -fx-cursor: hand; -fx-padding: 5 10; " +
-                "-fx-effect: dropshadow(gaussian, rgba(245, 158, 11, 0.25), 8, 0, 0, 0);";
-
-        btn.setStyle(normal);
-        btn.setOnMouseEntered(e -> btn.setStyle(hover));
-        btn.setOnMouseExited(e -> btn.setStyle(normal));
-        btn.setOnAction(e -> {
-            uField.setText(username);
-            pField.setText(password);
-        });
-        return btn;
     }
 }
 

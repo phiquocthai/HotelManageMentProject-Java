@@ -36,9 +36,6 @@ public class Room extends BaseEntity {
     @Column(name = "trang_thai", nullable = false)
     private RoomStatus status;
 
-    @Column(name = "duong_dan_anh", length = 100)
-    private String imagePath;
-
     @Column(name = "ghi_chu", columnDefinition = "TEXT")
     private String note;
 

@@ -46,6 +46,8 @@ public class WorkShiftView {
         addBtn.setGraphic(IconUtils.icon("plus", 14, Color.web("#0A0D14")));
         addBtn.setGraphicTextGap(8);
         addBtn.getStyleClass().add("btn-gold");
+        addBtn.setMinWidth(Region.USE_PREF_SIZE);
+        addBtn.setPrefWidth(160);
         addBtn.setStyle("-fx-font-family: 'Montserrat', sans-serif; -fx-font-size: 13.5px; -fx-font-weight: 800; -fx-padding: 9 22; -fx-background-color: #F59E0B; -fx-text-fill: #0A0D14; -fx-background-radius: 8; -fx-cursor: hand;");
 
         headerRow.getChildren().addAll(titleBox, headerSpacer, addBtn);
@@ -57,13 +59,13 @@ public class WorkShiftView {
         table.getStyleClass().add("table-view");
         VBox.setVgrow(table, Priority.ALWAYS);
         table.setPlaceholder(new Label("Chưa có ca làm việc nào."));
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        TableColumn<WorkShift, String> idCol = new TableColumn<>("MÃ CA");
-        idCol.setMinWidth(90);
-        idCol.prefWidthProperty().bind(table.widthProperty().multiply(0.12));
+        TableColumn<WorkShift, String> idCol = new TableColumn<>("ID");
+        idCol.setMinWidth(70);
+        idCol.setPrefWidth(80);
         idCol.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().id != null ? String.format("CA%02d", d.getValue().id) : "—"));
+                d.getValue().id != null ? String.valueOf(d.getValue().id) : "—"));
+        idCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER_LEFT;");
         idCol.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -73,15 +75,17 @@ public class WorkShiftView {
                     setGraphic(null);
                 } else {
                     setText(item);
-                    setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-weight: 800; -fx-text-fill: #F59E0B; -fx-font-size: 14px; -fx-padding: 11 14;");
-                    setAlignment(Pos.CENTER);
+                    setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-weight: 800; -fx-text-fill: #F59E0B; -fx-font-size: 13.5px; -fx-alignment: CENTER_LEFT;");
+                    setAlignment(Pos.CENTER_LEFT);
                 }
             }
         });
 
-        TableColumn<WorkShift, String> nameCol = new TableColumn<>("TÊN CA");
+        TableColumn<WorkShift, String> nameCol = new TableColumn<>("Tên ca");
+        nameCol.setMinWidth(200);
+        nameCol.setPrefWidth(240);
         nameCol.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().shiftName));
-        nameCol.prefWidthProperty().bind(table.widthProperty().multiply(0.34));
+        nameCol.setStyle("-fx-font-weight: 700; -fx-alignment: CENTER_LEFT;");
         nameCol.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -91,15 +95,17 @@ public class WorkShiftView {
                     setGraphic(null);
                 } else {
                     setText(item);
-                    setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-weight: 800; -fx-text-fill: #FFFFFF; -fx-font-size: 14px; -fx-padding: 11 14;");
+                    setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-weight: 800; -fx-text-fill: #FFFFFF; -fx-font-size: 14px; -fx-alignment: CENTER_LEFT;");
                     setAlignment(Pos.CENTER_LEFT);
                 }
             }
         });
 
-        TableColumn<WorkShift, String> startCol = new TableColumn<>("GIỜ BẮT ĐẦU");
+        TableColumn<WorkShift, String> startCol = new TableColumn<>("Giờ bắt đầu");
+        startCol.setMinWidth(150);
+        startCol.setPrefWidth(180);
         startCol.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().startTime));
-        startCol.prefWidthProperty().bind(table.widthProperty().multiply(0.22));
+        startCol.setStyle("-fx-alignment: CENTER_LEFT;");
         startCol.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -108,15 +114,17 @@ public class WorkShiftView {
                     setText(null);
                 } else {
                     setText(item);
-                    setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 14px; -fx-text-fill: #F1F5F9; -fx-font-weight: 600; -fx-padding: 11 14;");
+                    setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 14px; -fx-text-fill: #F1F5F9; -fx-font-weight: 600; -fx-alignment: CENTER_LEFT;");
                     setAlignment(Pos.CENTER_LEFT);
                 }
             }
         });
 
-        TableColumn<WorkShift, String> endCol = new TableColumn<>("GIỜ KẾT THÚC");
+        TableColumn<WorkShift, String> endCol = new TableColumn<>("Giờ kết thúc");
+        endCol.setMinWidth(150);
+        endCol.setPrefWidth(180);
         endCol.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().endTime));
-        endCol.prefWidthProperty().bind(table.widthProperty().multiply(0.22));
+        endCol.setStyle("-fx-alignment: CENTER_LEFT;");
         endCol.setCellFactory(col -> new TableCell<>() {
             @Override
             protected void updateItem(String item, boolean empty) {
@@ -125,15 +133,17 @@ public class WorkShiftView {
                     setText(null);
                 } else {
                     setText(item);
-                    setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 14px; -fx-text-fill: #F1F5F9; -fx-font-weight: 600; -fx-padding: 11 14;");
+                    setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 14px; -fx-text-fill: #F1F5F9; -fx-font-weight: 600; -fx-alignment: CENTER_LEFT;");
                     setAlignment(Pos.CENTER_LEFT);
                 }
             }
         });
 
         // Cột Trạng thái (Entity field: dang_hoat_dong / active)
-        TableColumn<WorkShift, String> statusCol = new TableColumn<>("TRẠNG THÁI");
-        statusCol.prefWidthProperty().bind(table.widthProperty().multiply(0.14));
+        TableColumn<WorkShift, String> statusCol = new TableColumn<>("Trạng thái");
+        statusCol.setMinWidth(180);
+        statusCol.setPrefWidth(200);
+        statusCol.setStyle("-fx-alignment: CENTER_LEFT;");
         statusCol.setCellValueFactory(d -> new SimpleStringProperty(d.getValue().active ? "Đang áp dụng" : "Tạm ngưng"));
         statusCol.setCellFactory(col -> new TableCell<>() {
             @Override
@@ -146,17 +156,21 @@ public class WorkShiftView {
                     boolean act = "Đang áp dụng".equalsIgnoreCase(item);
                     Label badge = new Label(item);
                     badge.getStyleClass().addAll("badge", act ? "badge-trong" : "badge-bao_tri");
-                    badge.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-padding: 4 12;");
+                    badge.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-padding: 4 14; -fx-min-width: 120px;");
+                    badge.setMinWidth(Region.USE_PREF_SIZE);
+                    badge.setPrefWidth(Region.USE_COMPUTED_SIZE);
+                    badge.setTextOverrun(OverrunStyle.CLIP);
                     setGraphic(badge);
                     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    setAlignment(Pos.CENTER);
+                    setAlignment(Pos.CENTER_LEFT);
                 }
             }
         });
 
-        TableColumn<WorkShift, Void> actionCol = new TableColumn<>("THAO TÁC");
+        TableColumn<WorkShift, Void> actionCol = new TableColumn<>("Thao tác");
         actionCol.setMinWidth(180);
-        actionCol.prefWidthProperty().bind(table.widthProperty().multiply(0.18));
+        actionCol.setPrefWidth(200);
+        actionCol.setStyle("-fx-alignment: CENTER_LEFT;");
 
         table.getColumns().addAll(idCol, nameCol, startCol, endCol, statusCol, actionCol);
 
@@ -179,7 +193,7 @@ public class WorkShiftView {
                 editBtn.setMinWidth(68);
                 editBtn.setStyle("-fx-padding: 4 11; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 68px;");
 
-                delBtn.setGraphic(IconUtils.icon("trash", 12, Color.web("#F87171")));
+                delBtn.setGraphic(IconUtils.icon("trash", 12, Color.WHITE));
                 delBtn.setGraphicTextGap(6);
                 delBtn.setMinWidth(68);
                 delBtn.setStyle("-fx-padding: 4 11; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 68px;");
@@ -264,20 +278,6 @@ public class WorkShiftView {
         titleArea.getChildren().addAll(hTitle, hSub);
         modalHeader.getChildren().addAll(iconBadge, titleArea);
 
-        // Quick Preset Chips
-        VBox presetBox = new VBox(6);
-        Label presetLabel = new Label("⚡ Chọn nhanh ca mẫu:");
-        presetLabel.setStyle("-fx-font-family: 'Inter', sans-serif; -fx-font-size: 12px; -fx-font-weight: 700; -fx-text-fill: #F59E0B;");
-
-        FlowPane chips = new FlowPane(8, 8);
-        chips.getChildren().addAll(
-                createPresetChip("Ca sáng (06:00 - 14:00)", "Ca sáng", "06:00", "14:00", nameField, startField, endField),
-                createPresetChip("Ca chiều (14:00 - 22:00)", "Ca chiều", "14:00", "22:00", nameField, startField, endField),
-                createPresetChip("Ca đêm (22:00 - 06:00)", "Ca đêm", "22:00", "06:00", nameField, startField, endField),
-                createPresetChip("Ca hành chính (08:00 - 17:00)", "Ca hành chính", "08:00", "17:00", nameField, startField, endField)
-        );
-        presetBox.getChildren().addAll(presetLabel, chips);
-
         // Form fields
         VBox formBody = new VBox(12);
         formBody.getChildren().addAll(
@@ -286,7 +286,7 @@ public class WorkShiftView {
                 buildFormField("Giờ kết thúc (*)", endField)
         );
 
-        modalContent.getChildren().addAll(modalHeader, new Separator(), presetBox, formBody);
+        modalContent.getChildren().addAll(modalHeader, new Separator(), formBody);
         dialog.getDialogPane().setContent(modalContent);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
 
@@ -387,18 +387,6 @@ public class WorkShiftView {
             return null;
         });
         dialog.showAndWait();
-    }
-
-    private static Button createPresetChip(String chipText, String name, String start, String end,
-                                           TextField nameField, TextField startField, TextField endField) {
-        Button chip = new Button(chipText);
-        chip.getStyleClass().add("preset-chip");
-        chip.setOnAction(e -> {
-            nameField.setText(name);
-            startField.setText(start);
-            endField.setText(end);
-        });
-        return chip;
     }
 
     private static VBox buildFormField(String labelText, Control inputControl) {

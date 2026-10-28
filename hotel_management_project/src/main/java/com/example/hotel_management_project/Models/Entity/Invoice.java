@@ -34,15 +34,19 @@ public class Invoice extends BaseEntity {
     private Promotion promotion;
 
     @Column(name = "tien_phong", nullable = false, precision = 12, scale = 0)
+    @Builder.Default
     private BigDecimal roomAmount = BigDecimal.ZERO;
 
     @Column(name = "tien_dich_vu", nullable = false, precision = 12, scale = 0)
+    @Builder.Default
     private BigDecimal serviceAmount = BigDecimal.ZERO;
 
     @Column(name = "tien_phat", nullable = false, precision = 12, scale = 0)
+    @Builder.Default
     private BigDecimal penaltyAmount = BigDecimal.ZERO;
 
     @Column(name = "tien_giam", nullable = false, precision = 12, scale = 0)
+    @Builder.Default
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @Column(name = "tong_tien", nullable = false, precision = 12, scale = 0)

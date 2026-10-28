@@ -31,7 +31,7 @@ public class CustomerController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @PutMapping("/search/{id}")
+    @PutMapping(value = {"/{id}", "/search/{id}"})
     public ResponseEntity<ApiResponse> updateCustomer(@PathVariable Long id, @RequestBody @Valid CustomerRequest request) {
         CustomerResponse response = customerService.updateCustomer(id, request);
         ApiResponse apiResponse = new ApiResponse();

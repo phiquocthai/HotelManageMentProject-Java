@@ -1,498 +1,409 @@
 package com.lotusstay.javafx.net;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.lotusstay.javafx.model.*;
 
 import java.math.BigDecimal;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * PHIÊN BẢN MOCK (dữ liệu mẫu trong bộ nhớ) — KHÔNG gọi backend thật.
- * Phản ánh đầy đủ các Entity và các trường từ backend Spring Boot.
+ * ApiService kết nối trực tiếp tới Backend Spring Boot qua ApiClient (REST
+ * HTTP).
+ * Toàn bộ dữ liệu mẫu (mock seed data) đã được xóa bỏ hoàn toàn.
  */
 public class ApiService {
 
-    // ============== "BẢNG" TRONG BỘ NHỚ ==============
-    private static final List<UserAccount> USERS = new ArrayList<>();
-    private static final Map<String, String> PASSWORDS = new HashMap<>();
-    private static final List<RoomType> ROOM_TYPES = new ArrayList<>();
-    private static final List<Room> ROOMS = new ArrayList<>();
-    private static final List<Customer> CUSTOMERS = new ArrayList<>();
-    private static final List<Booking> BOOKINGS = new ArrayList<>();
-    private static final List<ServiceItem> SERVICES = new ArrayList<>();
-    private static final List<Staff> STAFF = new ArrayList<>();
-    private static final List<Invoice> INVOICES = new ArrayList<>();
-    private static final List<WorkShift> WORK_SHIFTS = new ArrayList<>();
-    private static final List<ShiftAssignment> SHIFT_ASSIGNMENTS = new ArrayList<>();
-    private static final List<Attendance> ATTENDANCES = new ArrayList<>();
+    private static final DateTimeFormatter DATE_VN = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter DATE_ISO = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    private static long nextUserId = 1, nextRoomTypeId = 1, nextRoomId = 1, nextCustomerId = 1,
-            nextBookingId = 1, nextServiceId = 1, nextStaffId = 1, nextInvoiceId = 1,
-            nextWorkShiftId = 1, nextShiftAssignmentId = 1, nextAttendanceId = 1;
+    // ============== AUTH (ĐĂNG NHẬP) ==============
+    public static LoginResponse login(String username, String password) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("account", username);
+        req.put("password", password);
+        req.put("rememberMe", false);
 
-    static { seed(); }
-
-    private static void seed() {
-        // ---- Tài khoản ----
-        UserAccount admin = user(nextUserId++, "admin", "Quản trị viên", "ADMIN");
-        UserAccount manager = user(nextUserId++, "manager", "Nguyễn Thị Quản Lý", "MANAGER");
-        UserAccount reception = user(nextUserId++, "reception", "Trần Văn Lễ Tân", "RECEPTION");
-        USERS.addAll(List.of(admin, manager, reception));
-        PASSWORDS.put("admin", "admin123");
-        PASSWORDS.put("manager", "manager123");
-        PASSWORDS.put("reception", "reception123");
-
-        // ---- Loại phòng (Mã LP01, LP02...) ----
-        RoomType rtDon = roomType("LP01", "Phòng Đơn Standard", 350_000, 1);
-        RoomType rtDoi = roomType("LP02", "Phòng Đôi Superior", 550_000, 2);
-        RoomType rtVip = roomType("LP03", "Phòng VIP Deluxe", 950_000, 2);
-        RoomType rtGd = roomType("LP04", "Phòng Gia Đình Suite", 1_400_000, 4);
-        ROOM_TYPES.addAll(List.of(rtDon, rtDoi, rtVip, rtGd));
-
-        // ---- Phòng (Mã P001, P002...) ----
-        ROOMS.add(room("P001", "101", rtDoi, 1, "TRONG", "Gần sảnh chính, cửa sổ thoáng"));
-        ROOMS.add(room("P002", "102", rtDon, 1, "DANG_O", "Khách lưu trú 3 đêm"));
-        ROOMS.add(room("P003", "103", rtDon, 1, "TRONG", "Phòng tầng trệt"));
-        ROOMS.add(room("P004", "104", rtDoi, 1, "DANG_DON", "Khách vừa trả lúc 11h"));
-        ROOMS.add(room("P005", "105", rtDoi, 1, "TRONG", "View sân vườn"));
-        ROOMS.add(room("P006", "106", rtVip, 1, "DANG_O", "Khách VIP đoàn công tác"));
-        ROOMS.add(room("P007", "107", rtDoi, 1, "BAO_TRI", "Bảo dưỡng máy lạnh"));
-        ROOMS.add(room("P008", "108", rtDon, 1, "DANG_O", "Khách ở dài hạn"));
-        ROOMS.add(room("P009", "201", rtVip, 2, "TRONG", "View hồ bơi"));
-        ROOMS.add(room("P010", "205", rtDoi, 2, "DANG_O", "Đã thanh toán trước"));
-        ROOMS.add(room("P011", "301", rtVip, 3, "TRONG", "Tầng cao yên tĩnh"));
-        ROOMS.add(room("P012", "310", rtVip, 3, "DANG_DON", "Thay ga giường"));
-        ROOMS.add(room("P013", "401", rtGd, 4, "TRONG", "Suite gia đình cao cấp"));
-        ROOMS.add(room("P014", "412", rtGd, 4, "DANG_O", "Gia đình 4 người"));
-
-        // ---- Khách hàng (Mã KH001, KH002...) ----
-        Customer a = customer("KH001", "Nguyễn Văn An", "0901234501", "079201001234", "an.nguyen@gmail.com");
-        Customer b = customer("KH002", "Trần Thị Bích", "0901234502", "079201001235", "bich.tran@gmail.com");
-        Customer c = customer("KH003", "Lê Hoàng Cường", "0901234503", "079201001236", "cuong.le@gmail.com");
-        Customer d = customer("KH004", "Phạm Thị Diễm", "0901234504", "079201001237", "diem.pham@gmail.com");
-        Customer e = customer("KH005", "Hoàng Văn Em", "0901234505", "079201001238", "em.hoang@gmail.com");
-        Customer f = customer("KH006", "Vũ Mai Phương", "0901234506", "079201001239", "phuong.vu@gmail.com");
-        CUSTOMERS.addAll(List.of(a, b, c, d, e, f));
-
-        // ---- Đặt phòng đang diễn ra (Mã DP001, DP002...) ----
-        BOOKINGS.add(booking("DP001", b, findRoom("102"), LocalDate.now().minusDays(2), LocalDate.now().plusDays(1), "DANG_O", "Nhận phòng sớm"));
-        BOOKINGS.add(booking("DP002", f, findRoom("412"), LocalDate.now().minusDays(1), LocalDate.now().plusDays(2), "DANG_O", "Yêu cầu cũi trẻ em"));
-        BOOKINGS.add(booking("DP003", e, findRoom("108"), LocalDate.now(), LocalDate.now().plusDays(1), "DANG_O", "Xuất hóa đơn đỏ"));
-
-        // ---- Dịch vụ (Mã DV001, DV002...) ----
-        SERVICES.add(service("DV001", "Buffet Ăn sáng", 80_000));
-        SERVICES.add(service("DV002", "Giặt ủi quần áo", 45_000));
-        SERVICES.add(service("DV003", "Đồ uống Minibar", 35_000));
-        SERVICES.add(service("DV004", "Đưa đón sân bay", 280_000));
-        SERVICES.add(service("DV005", "Spa & Massage thư giãn", 400_000));
-
-        // ---- Nhân viên & Tài khoản (làm chung) ----
-        Staff stAdmin = staff("TK001", "admin01", "admin123", "Phi Quốc Thái (Admin)", "admin@hotel.vn", "0901000001", "Quản trị viên", "ADMIN", "Toàn thời gian", "ACTIVE", "01/01/2026");
-        Staff ql1 = staff("TK002", "quanly01", "quanly123", "Nguyễn Thị Quản Lý", "quanly01@hotel.vn", "0901000002", "Quản lý", "MANAGER", "Ca sáng (6h–14h)", "ACTIVE", "05/01/2026");
-        Staff lt1 = staff("TK003", "letan01", "letan123", "Trần Văn Lễ Tân", "letan01@hotel.vn", "0901000003", "Lễ tân", "RECEPTION", "Ca chiều (14h–22h)", "ACTIVE", "10/01/2026");
-        Staff lt2 = staff("TK004", "letan02", "letan123", "Lê Hoàng Lễ Tân", "letan02@hotel.vn", "0901000004", "Lễ tân", "RECEPTION", "Ca đêm (22h–6h)", "INACTIVE", "12/02/2026");
-        Staff lt3 = staff("TK005", "letan03", "letan123", "Phạm Minh Đức", "letan03@hotel.vn", "0901000005", "Lễ tân", "RECEPTION", "Ca sáng (6h–14h)", "ACTIVE", "20/03/2026");
-        Staff ql2 = staff("TK006", "quanly02", "quanly123", "Võ Thị Ánh Tuyết", "anhtuyet@hotel.vn", "0901000006", "Quản lý", "MANAGER", "Ca chiều (14h–22h)", "ACTIVE", "02/04/2026");
-        STAFF.addAll(List.of(stAdmin, ql1, lt1, lt2, lt3, ql2));
-
-        for (Staff st : STAFF) {
-            PASSWORDS.put(st.username, st.password);
+        JsonNode root = ApiClient.post("/api/auth/login", req, new TypeReference<JsonNode>() {
+        });
+        if (root == null) {
+            throw new ApiClient.ApiException("Không nhận được phản hồi từ máy chủ.");
         }
 
-        // ---- Ca làm việc ----
-        WorkShift caSang = workShift(nextWorkShiftId++, "Ca sáng", "06:00", "14:00");
-        WorkShift caChieu = workShift(nextWorkShiftId++, "Ca chiều", "14:00", "22:00");
-        WorkShift caDem = workShift(nextWorkShiftId++, "Ca đêm", "22:00", "06:00");
-        WorkShift caSangSom = workShift(nextWorkShiftId++, "Ca sáng sớm", "19:00", "23:00");
-        WORK_SHIFTS.addAll(List.of(caSang, caChieu, caDem, caSangSom));
-
-        // ---- Phân ca (ngày 10/10/2026 & 09/10/2026) ----
-        ShiftAssignment sa1 = shiftAssignment(nextShiftAssignmentId++, ql1, caSang, "10/10/2026");
-        ShiftAssignment sa2 = shiftAssignment(nextShiftAssignmentId++, lt1, caChieu, "10/10/2026");
-        ShiftAssignment sa3 = shiftAssignment(nextShiftAssignmentId++, lt2, caSang, "10/10/2026");
-        ShiftAssignment sa4 = shiftAssignment(nextShiftAssignmentId++, lt3, caDem, "10/10/2026");
-        ShiftAssignment sa5 = shiftAssignment(nextShiftAssignmentId++, ql1, caSang, "09/10/2026");
-        ShiftAssignment sa6 = shiftAssignment(nextShiftAssignmentId++, lt1, caChieu, "09/10/2026");
-        ShiftAssignment sa7 = shiftAssignment(nextShiftAssignmentId++, lt2, caSang, "09/10/2026");
-        SHIFT_ASSIGNMENTS.addAll(List.of(sa1, sa2, sa3, sa4, sa5, sa6, sa7));
-
-        // ---- Chấm công ----
-        Attendance att1 = attendance(nextAttendanceId++, sa3, "06:00", null, "DU_CONG", "");
-        Attendance att2 = attendance(nextAttendanceId++, sa1, "06:02", null, "DU_CONG", "");
-        Attendance att3 = attendance(nextAttendanceId++, sa7, "06:00", "13:30", "VE_SOM", "Xin về sớm");
-        Attendance att4 = attendance(nextAttendanceId++, sa6, "14:20", "22:00", "DI_TRE", "Kẹt xe");
-        Attendance att5 = attendance(nextAttendanceId++, sa5, "05:58", "14:02", "DU_CONG", "");
-        ATTENDANCES.addAll(List.of(att1, att2, att3, att4, att5));
-        sa3.attendance = att1; sa1.attendance = att2;
-        sa7.attendance = att3; sa6.attendance = att4; sa5.attendance = att5;
-
-        // ---- Hóa đơn mẫu (Mã HD001, HD002...) ----
-        INVOICES.add(invoice("HD001", "DP000", a, findRoom("101"), 550_000, 0, 0, 0, LocalDate.now().minusDays(5), "DA_THANH_TOAN"));
-        INVOICES.add(invoice("HD002", "DP001", b, findRoom("102"), 350_000, 80_000, 0, 0, LocalDate.now().minusDays(4), "DA_THANH_TOAN"));
-        INVOICES.add(invoice("HD003", "DP000", c, findRoom("205"), 550_000, 45_000, 50_000, 0, LocalDate.now().minusDays(3), "DA_THANH_TOAN"));
-        INVOICES.add(invoice("HD004", "DP000", d, findRoom("310"), 950_000, 280_000, 0, 50_000, LocalDate.now().minusDays(2), "DA_THANH_TOAN"));
-        INVOICES.add(invoice("HD005", "DP003", e, findRoom("108"), 350_000, 0, 0, 0, LocalDate.now().minusDays(1), "DA_THANH_TOAN"));
-        INVOICES.add(invoice("HD006", "DP002", f, findRoom("412"), 1_400_000, 400_000, 0, 100_000, LocalDate.now(), "CHUA_THANH_TOAN"));
-    }
-
-    // ============== HÀM TẠO ĐỐI TƯỢNG MẪU ==============
-    private static UserAccount user(long id, String username, String fullName, String role) {
-        UserAccount u = new UserAccount();
-        u.id = id; u.username = username; u.fullName = fullName; u.role = role; u.status = "ACTIVE";
-        return u;
-    }
-
-    private static RoomType roomType(String code, String name, long price, int maxGuests) {
-        RoomType rt = new RoomType();
-        rt.id = nextRoomTypeId++;
-        rt.code = code;
-        rt.name = name;
-        rt.basePrice = BigDecimal.valueOf(price);
-        rt.maxGuests = maxGuests;
-        rt.active = true;
-        return rt;
-    }
-
-    private static Room room(String code, String number, RoomType type, int floor, String status, String notes) {
-        Room r = new Room();
-        r.id = nextRoomId++;
-        r.code = code;
-        r.number = number;
-        r.roomType = type;
-        r.floor = floor;
-        r.status = status;
-        r.notes = notes;
-        r.active = true;
-        return r;
-    }
-
-    private static Customer customer(String code, String name, String phone, String citizenId, String email) {
-        Customer c = new Customer();
-        c.id = nextCustomerId++;
-        c.code = code;
-        c.fullName = name;
-        c.phone = phone;
-        c.citizenId = citizenId;
-        c.email = email;
-        c.active = true;
-        return c;
-    }
-
-    private static Booking booking(String code, Customer c, Room r, LocalDate in, LocalDate outPlanned, String status, String notes) {
-        Booking b = new Booking();
-        b.id = nextBookingId++;
-        b.code = code;
-        b.customer = c;
-        b.room = r;
-        b.checkIn = in.toString();
-        b.checkOutPlanned = outPlanned.toString();
-        b.actualCheckIn = in.toString() + " 14:00";
-        b.status = status;
-        b.notes = notes;
-        return b;
-    }
-
-    private static ServiceItem service(String code, String name, long price) {
-        ServiceItem s = new ServiceItem();
-        s.id = nextServiceId++;
-        s.code = code;
-        s.name = name;
-        s.price = BigDecimal.valueOf(price);
-        s.active = true;
-        return s;
-    }
-
-    private static Staff staff(String code, String username, String password, String name, String email, String phone, String job, String role, String shift, String status, String date) {
-        long id = nextStaffId++;
-        return new Staff(id, code, username, password, name, email, phone, job, role, shift, status, date);
-    }
-
-    private static Invoice invoice(String code, String bookingCode, Customer c, Room r, long roomFee, long svcFee, long penalty, long discount, LocalDate date, String paymentStatus) {
-        Invoice i = new Invoice();
-        i.id = nextInvoiceId++;
-        i.code = code;
-        i.customer = c;
-        i.room = r;
-        i.roomFee = BigDecimal.valueOf(roomFee);
-        i.serviceFee = BigDecimal.valueOf(svcFee);
-        i.penaltyFee = BigDecimal.valueOf(penalty);
-        i.discountFee = BigDecimal.valueOf(discount);
-        i.total = i.roomFee.add(i.serviceFee).add(i.penaltyFee).subtract(i.discountFee);
-        i.issuedDate = date.toString();
-        i.paymentStatus = paymentStatus;
-        return i;
-    }
-
-    private static WorkShift workShift(long id, String name, String start, String end) {
-        WorkShift w = new WorkShift();
-        w.id = id; w.shiftName = name; w.startTime = start; w.endTime = end; w.active = true;
-        return w;
-    }
-
-    private static ShiftAssignment shiftAssignment(long id, Staff s, WorkShift w, String date) {
-        ShiftAssignment sa = new ShiftAssignment();
-        sa.id = id; sa.staff = s; sa.workShift = w; sa.workDate = date;
-        return sa;
-    }
-
-    private static Attendance attendance(long id, ShiftAssignment sa, String in, String out, String status, String note) {
-        Attendance a = new Attendance();
-        a.id = id; a.shiftAssignment = sa; a.checkInTime = in; a.checkOutTime = out; a.status = status; a.note = note;
-        return a;
-    }
-
-    private static Room findRoom(String number) {
-        return ROOMS.stream().filter(r -> r.number.equals(number)).findFirst().orElse(null);
-    }
-
-    // ============== AUTH ==============
-    public static synchronized LoginResponse login(String username, String password) {
-        sleep();
-        Staff s = STAFF.stream()
-                .filter(x -> x.username != null && x.username.equalsIgnoreCase(username))
-                .findFirst()
-                .orElse(null);
-        if (s != null) {
-            if (!s.password.equals(password)) {
-                throw new ApiClient.ApiException("Sai tên đăng nhập hoặc mật khẩu.");
-            }
-            if ("INACTIVE".equalsIgnoreCase(s.status)) {
-                throw new ApiClient.ApiException("Tài khoản nhân viên này đã bị khóa.");
-            }
-            LoginResponse res = new LoginResponse();
-            res.token = "mock-token-" + s.id;
-            res.userId = s.id;
-            res.username = s.username;
-            res.fullName = s.fullName;
-            res.role = s.role;
-            return res;
+        JsonNode resultNode = root.get("result");
+        if (resultNode == null || resultNode.isNull()) {
+            String msg = root.has("message") ? root.get("message").asText() : "Đăng nhập thất bại.";
+            throw new ApiClient.ApiException(msg);
         }
 
-        if (PASSWORDS.containsKey(username) && PASSWORDS.get(username).equals(password)) {
-            UserAccount u = USERS.stream().filter(x -> x.username.equals(username)).findFirst().orElse(null);
-            if (u != null) {
-                if ("INACTIVE".equals(u.status)) throw new ApiClient.ApiException("Tài khoản đã bị khóa.");
-                LoginResponse res = new LoginResponse();
-                res.token = "mock-token-" + u.id;
-                res.userId = u.id;
-                res.username = u.username;
-                res.fullName = u.fullName;
-                res.role = u.role;
-                return res;
+        String token = resultNode.has("token") ? resultNode.get("token").asText() : null;
+        JsonNode userNode = resultNode.get("user");
+
+        LoginResponse res = new LoginResponse();
+        res.token = token;
+
+        if (userNode != null && !userNode.isNull()) {
+            res.userId = userNode.has("id") ? userNode.get("id").asLong() : null;
+            res.username = userNode.has("username") ? userNode.get("username").asText() : username;
+            res.fullName = userNode.has("fullName") ? userNode.get("fullName").asText() : "";
+
+            if (userNode.has("role")) {
+                JsonNode roleNode = userNode.get("role");
+                if (roleNode.isObject() && roleNode.has("name")) {
+                    res.role = roleNode.get("name").asText();
+                } else {
+                    res.role = roleNode.asText();
+                }
             }
         }
-        throw new ApiClient.ApiException("Sai tên đăng nhập hoặc mật khẩu.");
+
+        // Lưu phiên đăng nhập
+        Session.set(res.token, res.userId, res.username, res.fullName, res.role);
+        return res;
     }
 
     // ============== DASHBOARD ==============
-    public static synchronized DashboardStats dashboard() {
-        sleep();
+    public static DashboardStats dashboard() {
         DashboardStats s = new DashboardStats();
+        List<Room> roomList = rooms();
 
-        // 1. KPI cards calculation
-        s.todayRevenue = BigDecimal.valueOf(1_260_000);
-        s.revenueGrowthPercent = 152.0;
-        s.todayInvoiceCount = 1;
+        s.todayRevenue = BigDecimal.ZERO;
+        s.revenueGrowthPercent = 0.0;
+        s.todayInvoiceCount = 0;
 
-        long occupied = ROOMS.stream().filter(r -> "DANG_O".equals(r.status)).count();
-        long available = ROOMS.stream().filter(r -> "TRONG".equals(r.status)).count();
-        long cleaning = ROOMS.stream().filter(r -> "DANG_DON".equals(r.status)).count();
-        long maintenance = ROOMS.stream().filter(r -> "BAO_TRI".equals(r.status)).count();
+        long occupied = roomList.stream().filter(r -> "DANG_O".equalsIgnoreCase(r.status)).count();
+        long available = roomList.stream().filter(r -> "TRONG".equalsIgnoreCase(r.status)).count();
+        long cleaning = roomList.stream().filter(r -> "DANG_DON".equalsIgnoreCase(r.status)).count();
+        long maintenance = roomList.stream()
+                .filter(r -> "BAO_TRI".equalsIgnoreCase(r.status) || "DANG_BAO_TRI".equalsIgnoreCase(r.status)).count();
 
-        s.totalRooms = ROOMS.size() > 0 ? ROOMS.size() : 14;
-        s.occupiedRooms = occupied > 0 ? occupied : 4;
-        s.availableRooms = available > 0 ? available : 6;
-        s.cleaningRooms = cleaning > 0 ? cleaning : 3;
-        s.maintenanceRooms = maintenance > 0 ? maintenance : 1;
-        s.occupancyRate = 31;
-        s.readyToWelcome = (int) s.availableRooms;
+        s.totalRooms = roomList.size();
+        s.occupiedRooms = occupied;
+        s.availableRooms = available;
+        s.cleaningRooms = cleaning;
+        s.maintenanceRooms = maintenance;
+        s.occupancyRate = s.totalRooms > 0 ? (int) Math.round((occupied * 100.0) / s.totalRooms) : 0;
+        s.readyToWelcome = (int) available;
 
-        s.pendingReceivables = BigDecimal.valueOf(1_282_000);
-        s.unpaidInvoicesCount = 2;
-        s.upcomingCheckouts = 3;
+        s.pendingReceivables = BigDecimal.ZERO;
+        s.unpaidInvoicesCount = 0;
+        s.upcomingCheckouts = 0;
         s.todayCheckouts = 0;
-        s.tomorrowCheckouts = 3;
+        s.tomorrowCheckouts = 0;
 
-        // 2. Doanh thu 7 ngày gần nhất
-        s.revenue7DaysTotal = BigDecimal.valueOf(5_542_000);
-        s.revenue7DaysAverage = BigDecimal.valueOf(791_714);
-        s.dailyRevenues = List.of(
-                new DashboardStats.DailyRevenueItem("CN 18/10", BigDecimal.ZERO, null, false),
-                new DashboardStats.DailyRevenueItem("T2 19/10", BigDecimal.valueOf(550_000), null, false),
-                new DashboardStats.DailyRevenueItem("T3 20/10", BigDecimal.valueOf(350_000), null, false),
-                new DashboardStats.DailyRevenueItem("T4 21/10", BigDecimal.ZERO, null, false),
-                new DashboardStats.DailyRevenueItem("T5 22/10", BigDecimal.valueOf(2_882_000), "2.9 tr", false),
-                new DashboardStats.DailyRevenueItem("T6 23/10", BigDecimal.valueOf(500_000), null, false),
-                new DashboardStats.DailyRevenueItem("Hôm nay 24/10", BigDecimal.valueOf(1_260_000), "1.3 tr", true)
-        );
-
-        // 3. Thu tiền theo phương thức
-        s.paymentBreakdowns = List.of(
-                new DashboardStats.PaymentMethodItem("Tiền mặt", "1.1 tr", 27, "#38BDF8"),
-                new DashboardStats.PaymentMethodItem("MoMo", "850k", 20, "#FB923C"),
-                new DashboardStats.PaymentMethodItem("Chuyển khoản", "2.3 tr", 53, "#10B981")
-        );
-
-        // 4. Tiền phòng theo loại phòng
-        s.roomTypeBreakdowns = List.of(
-                new DashboardStats.RoomTypeRevenueItem("Phòng VIP", "2.7 tr", 51),
-                new DashboardStats.RoomTypeRevenueItem("Phòng Gia Đình", "1.2 tr", 23),
-                new DashboardStats.RoomTypeRevenueItem("Phòng Đôi", "1 tr", 19),
-                new DashboardStats.RoomTypeRevenueItem("Phòng Đơn", "350k", 7)
-        );
-
-        // 5. Dịch vụ bán chạy
-        s.topServices = List.of(
-                new DashboardStats.ServiceSalesItem("Ăn sáng", "360k", 34),
-                new DashboardStats.ServiceSalesItem("Spa thư giãn", "350k", 33),
-                new DashboardStats.ServiceSalesItem("Đưa đón sân bay", "250k", 24),
-                new DashboardStats.ServiceSalesItem("Minibar", "60k", 6),
-                new DashboardStats.ServiceSalesItem("Giặt ủi", "40k", 4)
-        );
-
-        // 6. Lịch hôm nay & ngày mai
-        s.upcomingEvents = List.of(
-                new DashboardStats.ScheduleEventItem("NHAN_PHONG", "NHẬN PHÒNG", "Phạm Thị Dung", "P106 · Phòng VIP", "Ngày mai"),
-                new DashboardStats.ScheduleEventItem("TRA_PHONG", "TRẢ PHÒNG", "Trần Thị Bích", "P102 · Phòng Đơn", "Ngày mai"),
-                new DashboardStats.ScheduleEventItem("TRA_PHONG", "TRẢ PHÒNG", "Hoàng Văn Em", "P108 · Phòng Đơn", "Ngày mai"),
-                new DashboardStats.ScheduleEventItem("TRA_PHONG", "TRẢ PHÒNG", "Lê Văn Cường", "P205 · Phòng Đôi", "Ngày mai")
-        );
-
-        // 7. Hóa đơn gần đây
-        s.recentInvoices = List.of(
-                new DashboardStats.RecentInvoiceItem("Hoàng Văn Em", "P401", "1.260.000 ₫", "DA_THANH_TOAN", "ĐÃ THANH TOÁN", "24/10/2026"),
-                new DashboardStats.RecentInvoiceItem("Nguyễn Văn An", "P105", "500.000 ₫", "CHUA_THANH_TOAN", "CHƯA THANH TOÁN", "23/10/2026"),
-                new DashboardStats.RecentInvoiceItem("Phạm Thị Dung", "P310", "1.100.000 ₫", "DA_THANH_TOAN", "ĐÃ THANH TOÁN", "22/10/2026"),
-                new DashboardStats.RecentInvoiceItem("Lê Văn Cường", "P201", "1.782.000 ₫", "THANH_TOAN_1_PHAN", "THANH TOÁN 1 PHẦN", "22/10/2026"),
-                new DashboardStats.RecentInvoiceItem("Trần Thị Bích", "P103", "350.000 ₫", "DA_THANH_TOAN", "ĐÃ THANH TOÁN", "20/10/2026"),
-                new DashboardStats.RecentInvoiceItem("Nguyễn Văn An", "P101", "550.000 ₫", "DA_THANH_TOAN", "ĐÃ THANH TOÁN", "19/10/2026")
-        );
+        s.revenue7DaysTotal = BigDecimal.ZERO;
+        s.revenue7DaysAverage = BigDecimal.ZERO;
+        s.dailyRevenues = Collections.emptyList();
+        s.paymentBreakdowns = Collections.emptyList();
+        s.roomTypeBreakdowns = Collections.emptyList();
+        s.topServices = Collections.emptyList();
+        s.upcomingEvents = Collections.emptyList();
+        s.recentInvoices = Collections.emptyList();
 
         return s;
     }
 
+    // ============== ROOM TYPES (LOẠI PHÒNG) ==============
+    public static List<RoomType> roomTypes() {
+        PageResponse<JsonNode> page = ApiClient.get("/api/room-type?pageNo=1&pageSize=1000",
+                new TypeReference<PageResponse<JsonNode>>() {
+                });
+        if (page == null || page.getContent() == null)
+            return new ArrayList<>();
 
-    // ============== ROOM TYPES ==============
-    public static synchronized List<RoomType> roomTypes() { sleep(); return new ArrayList<>(ROOM_TYPES); }
+        List<RoomType> list = new ArrayList<>();
+        for (JsonNode n : page.getContent()) {
+            RoomType rt = new RoomType();
+            rt.id = n.has("id") ? n.get("id").asLong() : null;
+            rt.code = rt.id != null ? String.format("LP%02d", rt.id) : "";
+            rt.name = n.has("name") ? n.get("name").asText() : "";
+            rt.basePrice = n.has("basePrice") ? new BigDecimal(n.get("basePrice").asText()) : BigDecimal.ZERO;
+            rt.maxGuests = n.has("maxOccupancy") ? n.get("maxOccupancy").asInt() : 2;
+            rt.imagePath = n.has("imagePath") ? n.get("imagePath").asText() : null;
+            rt.active = !n.has("active") || n.get("active").asBoolean();
+            list.add(rt);
+        }
+        return list;
+    }
 
-    public static synchronized RoomType createRoomType(String name, BigDecimal price, Integer maxGuests) {
+    public static RoomType createRoomType(String name, BigDecimal price, Integer maxGuests) {
         return createRoomType(null, name, price, maxGuests);
     }
 
-    public static synchronized RoomType createRoomType(String code, String name, BigDecimal price, Integer maxGuests) {
-        sleep();
-        if (code == null || code.isBlank()) {
-            code = String.format("LP%02d", nextRoomTypeId);
+    public static RoomType createRoomType(String code, String name, BigDecimal price, Integer maxGuests) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("name", name);
+        req.put("basePrice", price);
+        req.put("maxOccupancy", maxGuests == null ? 2 : maxGuests);
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/room-type", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+        RoomType rt = new RoomType();
+        if (resp != null && resp.result != null) {
+            JsonNode n = resp.result;
+            rt.id = n.has("id") ? n.get("id").asLong() : null;
+            rt.code = rt.id != null ? String.format("LP%02d", rt.id) : (code != null ? code : "LP01");
+            rt.name = n.has("name") ? n.get("name").asText() : name;
+            rt.basePrice = n.has("basePrice") ? new BigDecimal(n.get("basePrice").asText()) : price;
+            rt.maxGuests = n.has("maxOccupancy") ? n.get("maxOccupancy").asInt() : maxGuests;
         }
-        RoomType rt = roomType(code, name, price.longValue(), maxGuests == null ? 2 : maxGuests);
-        ROOM_TYPES.add(rt);
         return rt;
     }
 
-    public static synchronized RoomType updateRoomType(Long id, String code, String name, BigDecimal price, Integer maxGuests) {
-        sleep();
-        RoomType rt = ROOM_TYPES.stream().filter(x -> x.id.equals(id)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy loại phòng."));
-        if (code != null && !code.isBlank()) rt.code = code;
+    public static RoomType updateRoomType(Long id, String code, String name, BigDecimal price, Integer maxGuests) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("name", name);
+        req.put("basePrice", price);
+        req.put("maxOccupancy", maxGuests == null ? 2 : maxGuests);
+
+        ApiResponse<JsonNode> resp = ApiClient.put("/api/room-type/" + id, req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+        RoomType rt = new RoomType();
+        rt.id = id;
+        rt.code = code != null && !code.isBlank() ? code : String.format("LP%02d", id);
         rt.name = name;
         rt.basePrice = price;
         rt.maxGuests = maxGuests;
         return rt;
     }
 
-    public static synchronized void deleteRoomType(Long id) {
-        sleep();
-        boolean inUse = ROOMS.stream().anyMatch(r -> r.roomType != null && r.roomType.id.equals(id));
-        if (inUse) throw new ApiClient.ApiException("Không thể xóa — vẫn còn phòng thuộc loại này.");
-        ROOM_TYPES.removeIf(rt -> rt.id.equals(id));
+    public static void deleteRoomType(Long id) {
+        ApiClient.delete("/api/room-type/" + id);
     }
 
-    // ============== ROOMS ==============
-    public static synchronized List<Room> rooms() { sleep(); return new ArrayList<>(ROOMS); }
+    // ============== ROOMS (PHÒNG) ==============
+    public static List<Room> rooms() {
+        PageResponse<JsonNode> page = ApiClient.get("/api/rooms?pageNo=1&pageSize=1000",
+                new TypeReference<PageResponse<JsonNode>>() {
+                });
+        if (page == null || page.getContent() == null)
+            return new ArrayList<>();
 
-    public static synchronized Room createRoom(String number, Long roomTypeId, Integer floor, String notes) {
+        List<Room> list = new ArrayList<>();
+        for (JsonNode n : page.getContent()) {
+            Room r = new Room();
+            r.id = n.has("id") ? n.get("id").asLong() : null;
+            r.number = n.has("roomNumber") ? n.get("roomNumber").asText() : "";
+            r.code = "P" + r.number;
+            r.floor = n.has("floor") ? n.get("floor").asInt() : 1;
+            r.status = mapBackendRoomStatus(n.has("status") ? n.get("status").asText() : "Trống");
+            r.notes = n.has("note") ? n.get("note").asText() : "";
+            r.imagePath = n.has("imagePath") ? n.get("imagePath").asText() : null;
+            r.active = !n.has("active") || n.get("active").asBoolean();
+
+            RoomType rt = new RoomType();
+            rt.name = n.has("roomTypeName") ? n.get("roomTypeName").asText() : "Tiêu chuẩn";
+            r.roomType = rt;
+
+            list.add(r);
+        }
+        return list;
+    }
+
+    public static Room createRoom(String number, Long roomTypeId, Integer floor, String notes) {
         return createRoom(null, number, roomTypeId, floor, "TRONG", notes);
     }
 
-    public static synchronized Room createRoom(String code, String number, Long roomTypeId, Integer floor, String status, String notes) {
-        sleep();
-        RoomType type = ROOM_TYPES.stream().filter(t -> t.id.equals(roomTypeId)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy loại phòng."));
-        if (code == null || code.isBlank()) {
-            code = String.format("P%03d", nextRoomId);
+    public static Room createRoom(String code, String number, Long roomTypeId, Integer floor, String status,
+            String notes) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("roomNumber", number);
+        req.put("roomTypeId", roomTypeId);
+        req.put("floor", floor == null ? 1 : floor);
+        req.put("status", mapFeRoomStatusToVietnamese(status));
+        req.put("note", notes != null ? notes : "");
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/rooms", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        Room r = new Room();
+        r.number = number;
+        r.code = code != null && !code.isBlank() ? code : "P" + number;
+        r.floor = floor != null ? floor : 1;
+        r.status = status != null ? status : "TRONG";
+        r.notes = notes;
+        if (resp != null && resp.result != null && resp.result.has("id")) {
+            r.id = resp.result.get("id").asLong();
         }
-        Room r = room(code, number, type, floor == null ? 1 : floor, status == null ? "TRONG" : status, notes);
-        ROOMS.add(r);
         return r;
     }
 
-    public static synchronized Room updateRoom(Long id, String code, String number, Long roomTypeId, Integer floor, String status, String notes) {
-        sleep();
-        Room r = ROOMS.stream().filter(x -> x.id.equals(id)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy phòng."));
-        if (code != null && !code.isBlank()) r.code = code;
+    public static Room updateRoom(Long id, String code, String number, Long roomTypeId, Integer floor, String status,
+            String notes) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("roomNumber", number);
+        req.put("roomTypeId", roomTypeId);
+        req.put("floor", floor == null ? 1 : floor);
+        req.put("status", mapFeRoomStatusToVietnamese(status));
+        req.put("note", notes != null ? notes : "");
+
+        ApiClient.put("/api/rooms/" + id, req, new TypeReference<ApiResponse<JsonNode>>() {
+        });
+
+        Room r = new Room();
+        r.id = id;
         r.number = number;
-        if (roomTypeId != null) {
-            r.roomType = ROOM_TYPES.stream().filter(t -> t.id.equals(roomTypeId)).findFirst().orElse(r.roomType);
-        }
-        if (floor != null) r.floor = floor;
-        if (status != null) r.status = status;
+        r.code = code != null && !code.isBlank() ? code : "P" + number;
+        r.floor = floor != null ? floor : 1;
+        r.status = status;
         r.notes = notes;
         return r;
     }
 
-    public static synchronized Room updateRoomStatus(Long roomId, String status) {
-        sleep();
-        Room r = ROOMS.stream().filter(x -> x.id.equals(roomId)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy phòng."));
+    public static Room updateRoomStatus(Long roomId, String status) {
+        // Lấy thông tin phòng hiện tại
+        ApiResponse<JsonNode> current = ApiClient.get("/api/rooms/" + roomId,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+        if (current != null && current.result != null) {
+            JsonNode n = current.result;
+            Map<String, Object> req = new HashMap<>();
+            req.put("roomNumber", n.has("roomNumber") ? n.get("roomNumber").asText() : "");
+            // Lưu ý: nếu cần roomTypeId từ RoomType, ta có thể giữ nguyên hoặc tìm
+            req.put("floor", n.has("floor") ? n.get("floor").asInt() : 1);
+            req.put("status", mapFeRoomStatusToVietnamese(status));
+            req.put("note", n.has("note") ? n.get("note").asText() : "");
+            ApiClient.put("/api/rooms/" + roomId, req, new TypeReference<ApiResponse<JsonNode>>() {
+            });
+        }
+        Room r = new Room();
+        r.id = roomId;
         r.status = status;
         return r;
     }
 
-    public static synchronized void deleteRoom(Long id) {
-        sleep();
-        Room r = ROOMS.stream().filter(x -> x.id.equals(id)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy phòng."));
-        if ("DANG_O".equalsIgnoreCase(r.status)) {
-            throw new ApiClient.ApiException("Không thể xóa phòng đang có khách ở.");
+    public static void deleteRoom(Long id) {
+        ApiClient.delete("/api/rooms/" + id);
+    }
+
+    // ============== CUSTOMERS (KHÁCH HÀNG) ==============
+    public static PageResponse<Customer> customerPage(int pageNo, int pageSize, String query) {
+        String path;
+        int safePage = Math.max(1, pageNo);
+        int safeSize = Math.max(1, pageSize);
+        if (query == null || query.isBlank()) {
+            path = "/api/customer?pageNo=" + safePage + "&pageSize=" + safeSize + "&sortBy=id&sortDir=asc";
+        } else {
+            String q = query.trim();
+            String enc = java.net.URLEncoder.encode(q, java.nio.charset.StandardCharsets.UTF_8);
+            if (q.contains("@")) {
+                path = "/api/customer/search?pageNo=" + safePage + "&pageSize=" + safeSize
+                        + "&sortBy=id&sortDir=asc&email=" + enc;
+            } else if (q.matches("\\d{10,12}")) {
+                if (q.length() == 12) {
+                    path = "/api/customer/search?pageNo=" + safePage + "&pageSize=" + safeSize
+                            + "&sortBy=id&sortDir=asc&citizenId=" + enc;
+                } else {
+                    path = "/api/customer/search?pageNo=" + safePage + "&pageSize=" + safeSize
+                            + "&sortBy=id&sortDir=asc&phoneNumber=" + enc;
+                }
+            } else {
+                path = "/api/customer/search?pageNo=" + safePage + "&pageSize=" + safeSize
+                        + "&sortBy=id&sortDir=asc&fullName=" + enc;
+            }
         }
-        ROOMS.removeIf(x -> x.id.equals(id));
+        PageResponse<JsonNode> page = ApiClient.get(path, new TypeReference<PageResponse<JsonNode>>() {
+        });
+        PageResponse<Customer> res = new PageResponse<>();
+        if (page == null) {
+            res.pageNo = safePage;
+            res.pageSize = safeSize;
+            res.totalElements = 0;
+            res.totalPages = 1;
+            res.last = true;
+            res.content = new ArrayList<>();
+            return res;
+        }
+
+        res.pageNo = page.pageNo;
+        res.pageSize = page.pageSize;
+        res.totalElements = page.totalElements;
+        res.totalPages = Math.max(1, page.totalPages);
+        res.last = page.last;
+
+        List<Customer> list = new ArrayList<>();
+        if (page.getContent() != null) {
+            for (JsonNode n : page.getContent()) {
+                Customer c = new Customer();
+                c.id = n.has("id") ? n.get("id").asLong() : null;
+                c.fullName = n.has("fullName") ? n.get("fullName").asText() : "";
+                c.citizenId = n.has("citizenId") ? n.get("citizenId").asText() : "";
+                c.email = n.has("email") ? n.get("email").asText() : "";
+                c.phone = n.has("phoneNumber") ? n.get("phoneNumber").asText() : "";
+                c.imagePath = n.has("imagePath") ? n.get("imagePath").asText() : null;
+                c.active = !n.has("active") || n.get("active").asBoolean();
+                list.add(c);
+            }
+        }
+        res.content = list;
+        return res;
     }
 
-    // ============== CUSTOMERS ==============
-    public static synchronized List<Customer> customers(String query) {
-        sleep();
-        if (query == null || query.isBlank()) return new ArrayList<>(CUSTOMERS);
-        String q = query.toLowerCase();
-        return CUSTOMERS.stream()
-                .filter(c -> (c.fullName != null && c.fullName.toLowerCase().contains(q))
-                        || (c.code != null && c.code.toLowerCase().contains(q))
-                        || (c.citizenId != null && c.citizenId.toLowerCase().contains(q))
-                        || (c.email != null && c.email.toLowerCase().contains(q))
-                        || (c.phone != null && c.phone.contains(q)))
-                .collect(Collectors.toList());
+    public static List<Customer> customers(String query) {
+        PageResponse<Customer> page = customerPage(1, 1000, query);
+        List<Customer> list = page.getContent();
+        if (query != null && !query.isBlank()) {
+            String q = query.toLowerCase();
+            return list.stream()
+                    .filter(c -> (c.fullName != null && c.fullName.toLowerCase().contains(q))
+                            || (c.code != null && c.code.toLowerCase().contains(q))
+                            || (c.citizenId != null && c.citizenId.toLowerCase().contains(q))
+                            || (c.email != null && c.email.toLowerCase().contains(q))
+                            || (c.phone != null && c.phone.contains(q)))
+                    .collect(Collectors.toList());
+        }
+        return list;
     }
 
-    public static synchronized Customer createCustomer(String fullName, String phone, String email, String idNumber) {
+    public static Customer createCustomer(String fullName, String phone, String email, String idNumber) {
         return createCustomer(null, fullName, phone, email, idNumber);
     }
 
-    public static synchronized Customer createCustomer(String code, String fullName, String phone, String email, String idNumber) {
-        sleep();
-        if (code == null || code.isBlank()) {
-            code = String.format("KH%03d", nextCustomerId);
+    public static Customer createCustomer(String code, String fullName, String phone, String email, String idNumber) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("fullName", fullName);
+        req.put("citizenId", idNumber != null && !idNumber.isBlank() ? idNumber : "000000000000");
+        req.put("email", email != null && !email.isBlank() ? email : "khachhang@hotel.vn");
+        req.put("phoneNumber", phone != null && !phone.isBlank() ? phone : "0900000000");
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/customer", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        Customer c = new Customer();
+        c.fullName = fullName;
+        c.phone = phone;
+        c.email = email;
+        c.citizenId = idNumber;
+        if (resp != null && resp.result != null && resp.result.has("id")) {
+            c.id = resp.result.get("id").asLong();
+            c.code = String.format("KH%03d", c.id);
         }
-        Customer c = customer(code, fullName, phone, idNumber, email);
-        CUSTOMERS.add(c);
         return c;
     }
 
-    public static synchronized Customer updateCustomer(Long id, String code, String fullName, String phone, String email, String idNumber) {
-        sleep();
-        Customer c = CUSTOMERS.stream().filter(x -> x.id.equals(id)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy khách hàng."));
-        if (code != null && !code.isBlank()) c.code = code;
+    public static Customer updateCustomer(Long id, String code, String fullName, String phone, String email,
+            String idNumber) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("fullName", fullName);
+        req.put("citizenId", idNumber != null && !idNumber.isBlank() ? idNumber : "000000000000");
+        req.put("email", email != null && !email.isBlank() ? email : "khachhang@hotel.vn");
+        req.put("phoneNumber", phone != null && !phone.isBlank() ? phone : "0900000000");
+
+        ApiClient.put("/api/customer/" + id, req, new TypeReference<ApiResponse<JsonNode>>() {
+        });
+
+        Customer c = new Customer();
+        c.id = id;
+        c.code = code != null && !code.isBlank() ? code : String.format("KH%03d", id);
         c.fullName = fullName;
         c.phone = phone;
         c.email = email;
@@ -500,166 +411,328 @@ public class ApiService {
         return c;
     }
 
-    public static synchronized void deleteCustomer(Long id) {
-        sleep();
-        CUSTOMERS.removeIf(c -> c.id.equals(id));
+    public static void deleteCustomer(Long id) {
+        ApiClient.delete("/api/customer/" + id);
     }
 
-    // ============== BOOKINGS ==============
-    public static synchronized List<Booking> bookings() { sleep(); return new ArrayList<>(BOOKINGS); }
+    // ============== SERVICES (DỊCH VỤ) ==============
+    public static List<ServiceItem> services() {
+        PageResponse<JsonNode> page = ApiClient.get("/api/services?pageNo=1&pageSize=1000",
+                new TypeReference<PageResponse<JsonNode>>() {
+                });
+        if (page == null || page.getContent() == null)
+            return new ArrayList<>();
 
-    public static synchronized Booking createBooking(Long customerId, String newCustomerName, String newCustomerPhone,
-                                                       Long roomId, String checkIn, String checkOutPlanned, boolean checkInNow) {
-        sleep();
-        Room room = ROOMS.stream().filter(r -> r.id.equals(roomId)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy phòng."));
-        if (!"TRONG".equals(room.status)) throw new ApiClient.ApiException("Phòng hiện không trống.");
-
-        Customer customer;
-        if (customerId != null) {
-            customer = CUSTOMERS.stream().filter(c -> c.id.equals(customerId)).findFirst()
-                    .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy khách hàng."));
-        } else {
-            if (newCustomerName == null || newCustomerName.isBlank())
-                throw new ApiClient.ApiException("Thiếu thông tin khách hàng.");
-            customer = customer(String.format("KH%03d", nextCustomerId), newCustomerName.trim(), newCustomerPhone, "", "");
-            CUSTOMERS.add(customer);
+        List<ServiceItem> list = new ArrayList<>();
+        for (JsonNode n : page.getContent()) {
+            ServiceItem s = new ServiceItem();
+            s.id = n.has("id") ? n.get("id").asLong() : null;
+            s.code = s.id != null ? String.format("DV%03d", s.id) : "";
+            s.name = n.has("name") ? n.get("name").asText() : "";
+            s.price = n.has("price") ? new BigDecimal(n.get("price").asText()) : BigDecimal.ZERO;
+            s.imagePath = n.has("imagePath") ? n.get("imagePath").asText() : null;
+            s.active = !n.has("active") || n.get("active").asBoolean();
+            list.add(s);
         }
-
-        String code = String.format("DP%03d", nextBookingId);
-        Booking b = booking(code, customer, room, LocalDate.parse(checkIn), LocalDate.parse(checkOutPlanned),
-                checkInNow ? "DANG_O" : "DAT_TRUOC", "");
-        if (checkInNow) room.status = "DANG_O";
-        BOOKINGS.add(b);
-        return b;
+        return list;
     }
 
-    public static synchronized Booking checkIn(Long bookingId) {
-        sleep();
-        Booking b = BOOKINGS.stream().filter(x -> x.id.equals(bookingId)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy lượt đặt phòng."));
-        b.status = "DANG_O";
-        b.actualCheckIn = LocalDate.now().toString() + " " + java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
-        if (b.room != null) b.room.status = "DANG_O";
-        return b;
-    }
-
-    public static synchronized Booking cancelBooking(Long bookingId) {
-        sleep();
-        Booking b = BOOKINGS.stream().filter(x -> x.id.equals(bookingId)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy lượt đặt phòng."));
-        b.status = "HUY";
-        if (b.room != null && "DANG_O".equals(b.room.status)) {
-            b.room.status = "TRONG";
-        }
-        return b;
-    }
-
-    // ============== INVOICES ==============
-    public static synchronized List<Invoice> invoices() { sleep(); return new ArrayList<>(INVOICES); }
-
-    public static synchronized Invoice checkout(Long bookingId, Long roomId, Long customerId, String checkOutDate,
-                                                 BigDecimal roomFee, BigDecimal penaltyFee, List<Map<String, Object>> services) {
-        sleep();
-        Booking booking = null;
-        Room room = null;
-        Customer customer = null;
-
-        if (bookingId != null) {
-            booking = BOOKINGS.stream().filter(b -> b.id.equals(bookingId)).findFirst().orElse(null);
-            if (booking != null) { room = booking.room; customer = booking.customer; }
-        } else {
-            if (roomId != null) room = ROOMS.stream().filter(r -> r.id.equals(roomId)).findFirst().orElse(null);
-            if (customerId != null) customer = CUSTOMERS.stream().filter(c -> c.id.equals(customerId)).findFirst().orElse(null);
-        }
-
-        String invCode = String.format("HD%03d", nextInvoiceId);
-        String bookCode = booking != null ? booking.code : "DP000";
-        BigDecimal serviceFee = BigDecimal.ZERO;
-        Invoice inv = invoice(invCode, bookCode, customer, room,
-                roomFee == null ? 0 : roomFee.longValue(),
-                serviceFee.longValue(),
-                penaltyFee == null ? 0 : penaltyFee.longValue(),
-                0,
-                checkOutDate == null ? LocalDate.now() : LocalDate.parse(checkOutDate),
-                "DA_THANH_TOAN");
-        INVOICES.add(inv);
-
-        if (booking != null) {
-            booking.status = "DA_TRA";
-            booking.actualCheckOut = LocalDate.now().toString() + " " + java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"));
-        }
-        if (room != null) room.status = "DANG_DON";
-        return inv;
-    }
-
-    public static synchronized void deleteInvoice(Long id) {
-        sleep();
-        INVOICES.removeIf(i -> i.id.equals(id));
-    }
-
-    // ============== SERVICES (danh mục) ==============
-    public static synchronized List<ServiceItem> services() { sleep(); return new ArrayList<>(SERVICES); }
-
-    public static synchronized ServiceItem createService(String name, BigDecimal price) {
+    public static ServiceItem createService(String name, BigDecimal price) {
         return createService(null, name, price);
     }
 
-    public static synchronized ServiceItem createService(String code, String name, BigDecimal price) {
-        sleep();
-        if (code == null || code.isBlank()) {
-            code = String.format("DV%03d", nextServiceId);
+    public static ServiceItem createService(String code, String name, BigDecimal price) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("name", name);
+        req.put("price", price);
+        req.put("active", true);
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/services", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        ServiceItem s = new ServiceItem();
+        s.name = name;
+        s.price = price;
+        if (resp != null && resp.result != null && resp.result.has("id")) {
+            s.id = resp.result.get("id").asLong();
+            s.code = String.format("DV%03d", s.id);
         }
-        ServiceItem s = service(code, name, price.longValue());
-        SERVICES.add(s);
         return s;
     }
 
-    public static synchronized ServiceItem updateService(Long id, String code, String name, BigDecimal price) {
-        sleep();
-        ServiceItem s = SERVICES.stream().filter(x -> x.id.equals(id)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy dịch vụ."));
-        if (code != null && !code.isBlank()) s.code = code;
+    public static ServiceItem updateService(Long id, String code, String name, BigDecimal price) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("name", name);
+        req.put("price", price);
+        req.put("active", true);
+
+        ApiClient.put("/api/services/" + id, req, new TypeReference<ApiResponse<JsonNode>>() {
+        });
+
+        ServiceItem s = new ServiceItem();
+        s.id = id;
+        s.code = code != null && !code.isBlank() ? code : String.format("DV%03d", id);
         s.name = name;
         s.price = price;
         return s;
     }
 
-    public static synchronized void deleteService(Long id) {
-        sleep();
-        SERVICES.removeIf(s -> s.id.equals(id));
+    public static void deleteService(Long id) {
+        ApiClient.delete("/api/services/" + id);
     }
 
-    // ============== STAFF (nhân sự & tài khoản làm chung) ==============
-    public static synchronized List<Staff> staff() { sleep(); return new ArrayList<>(STAFF); }
+    // ============== PROMOTIONS (KHUYẾN MÃI) ==============
+    public static List<Promotion> promotions() {
+        PageResponse<JsonNode> page = ApiClient.get("/api/promotions?pageNo=1&pageSize=1000&sortBy=id&sortDir=asc",
+                new TypeReference<PageResponse<JsonNode>>() {
+                });
+        if (page == null || page.getContent() == null)
+            return new ArrayList<>();
 
-    public static synchronized Staff createStaff(String username, String password, String fullName,
-                                                 String email, String phone, String jobTitle,
-                                                 String role, String shift) {
-        sleep();
-        if (username != null && !username.isBlank() && STAFF.stream().anyMatch(s -> username.equalsIgnoreCase(s.username))) {
-            throw new ApiClient.ApiException("Tên đăng nhập @" + username + " đã tồn tại.");
+        List<Promotion> list = new ArrayList<>();
+        for (JsonNode n : page.getContent()) {
+            Promotion p = new Promotion();
+            p.id = n.has("id") && !n.get("id").isNull() ? n.get("id").asLong() : null;
+            p.code = n.has("code") && !n.get("code").isNull() ? n.get("code").asText() : "";
+            p.name = n.has("name") && !n.get("name").isNull() ? n.get("name").asText() : "";
+            p.discountType = n.has("discountType") && !n.get("discountType").isNull() ? n.get("discountType").asText()
+                    : "PHAN_TRAM";
+            p.discountValue = n.has("discountValue") && !n.get("discountValue").isNull()
+                    ? new BigDecimal(n.get("discountValue").asText())
+                    : BigDecimal.ZERO;
+            if (n.has("startDate") && !n.get("startDate").isNull()) {
+                try {
+                    p.startDate = LocalDate.parse(n.get("startDate").asText());
+                } catch (Exception ignored) {
+                }
+            }
+            if (n.has("endDate") && !n.get("endDate").isNull()) {
+                try {
+                    p.endDate = LocalDate.parse(n.get("endDate").asText());
+                } catch (Exception ignored) {
+                }
+            }
+            p.active = !n.has("active") || n.get("active").asBoolean();
+            list.add(p);
         }
-        long id = nextStaffId++;
-        String code = String.format("TK%03d", id);
-        String pwd = (password == null || password.isBlank()) ? "123456" : password;
-        String dateStr = LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        Staff s = new Staff(id, code, username, pwd, fullName, email, phone, jobTitle, role, shift, "ACTIVE", dateStr);
-        STAFF.add(s);
-        PASSWORDS.put(username, pwd);
-        return s;
+        return list;
     }
 
-    public static synchronized Staff updateStaff(Long id, String username, String fullName,
-                                                 String email, String phone, String jobTitle,
-                                                 String role, String shift) {
-        sleep();
-        Staff s = STAFF.stream().filter(x -> x.id.equals(id)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy nhân viên."));
-        if (username != null && !username.isBlank() && !username.equalsIgnoreCase(s.username)
-                && STAFF.stream().anyMatch(x -> username.equalsIgnoreCase(x.username))) {
-            throw new ApiClient.ApiException("Tên đăng nhập @" + username + " đã tồn tại.");
+    public static Promotion createPromotion(String code, String name, String discountType, BigDecimal discountValue,
+            LocalDate startDate, LocalDate endDate, Boolean active) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("code", code);
+        req.put("name", name);
+        req.put("discountType", discountType != null ? discountType : "PHAN_TRAM");
+        req.put("discountValue", discountValue != null ? discountValue : BigDecimal.ZERO);
+        req.put("startDate", startDate != null ? startDate.toString() : LocalDate.now().toString());
+        req.put("endDate", endDate != null ? endDate.toString() : LocalDate.now().plusMonths(1).toString());
+        req.put("active", active != null ? active : true);
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/promotions", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        Promotion p = new Promotion();
+        p.code = code;
+        p.name = name;
+        p.discountType = discountType;
+        p.discountValue = discountValue;
+        p.startDate = startDate;
+        p.endDate = endDate;
+        p.active = active;
+        if (resp != null && resp.result != null) {
+            JsonNode rNode = resp.result.has("promotion") ? resp.result.get("promotion") : resp.result;
+            if (rNode.has("id")) {
+                p.id = rNode.get("id").asLong();
+            }
         }
+        return p;
+    }
+
+    public static Promotion updatePromotion(Long id, String code, String name, String discountType,
+            BigDecimal discountValue,
+            LocalDate startDate, LocalDate endDate, Boolean active) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("code", code);
+        req.put("name", name);
+        req.put("discountType", discountType != null ? discountType : "PHAN_TRAM");
+        req.put("discountValue", discountValue != null ? discountValue : BigDecimal.ZERO);
+        req.put("startDate", startDate != null ? startDate.toString() : LocalDate.now().toString());
+        req.put("endDate", endDate != null ? endDate.toString() : LocalDate.now().plusMonths(1).toString());
+        req.put("active", active != null ? active : true);
+
+        ApiClient.put("/api/promotions/" + id, req, new TypeReference<ApiResponse<JsonNode>>() {
+        });
+
+        Promotion p = new Promotion();
+        p.id = id;
+        p.code = code;
+        p.name = name;
+        p.discountType = discountType;
+        p.discountValue = discountValue;
+        p.startDate = startDate;
+        p.endDate = endDate;
+        p.active = active;
+        return p;
+    }
+
+    public static void deletePromotion(Long id) {
+        ApiClient.delete("/api/promotions/" + id);
+    }
+
+    // ============== PAYMENT METHODS (PHƯƠNG THỨC THANH TOÁN) ==============
+    public static List<PaymentMethodItem> paymentMethods() {
+        PageResponse<JsonNode> page = ApiClient.get("/api/payment-methods?pageNo=1&pageSize=1000&sortBy=id&sortDir=asc",
+                new TypeReference<PageResponse<JsonNode>>() {
+                });
+        if (page == null || page.getContent() == null)
+            return new ArrayList<>();
+
+        List<PaymentMethodItem> list = new ArrayList<>();
+        for (JsonNode n : page.getContent()) {
+            PaymentMethodItem pm = new PaymentMethodItem();
+            pm.id = n.has("id") && !n.get("id").isNull() ? n.get("id").asLong() : null;
+            pm.name = n.has("name") && !n.get("name").isNull() ? n.get("name").asText() : "";
+            pm.qrImage = n.has("qrImage") && !n.get("qrImage").isNull() ? n.get("qrImage").asText() : null;
+            pm.bankName = n.has("bankName") && !n.get("bankName").isNull() ? n.get("bankName").asText() : null;
+            pm.accountNumber = n.has("accountNumber") && !n.get("accountNumber").isNull()
+                    ? n.get("accountNumber").asText()
+                    : null;
+            pm.accountHolderName = n.has("accountHolderName") && !n.get("accountHolderName").isNull()
+                    ? n.get("accountHolderName").asText()
+                    : null;
+            pm.active = !n.has("active") || n.get("active").asBoolean();
+            list.add(pm);
+        }
+        return list;
+    }
+
+    public static PaymentMethodItem createPaymentMethod(String name, String bankName, String accountNumber,
+            String accountHolderName, String qrImage, Boolean active) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("name", name);
+        req.put("bankName", bankName != null ? bankName : "");
+        req.put("accountNumber", accountNumber != null ? accountNumber : "");
+        req.put("accountHolderName", accountHolderName != null ? accountHolderName : "");
+        req.put("qrImage", qrImage != null ? qrImage : "");
+        req.put("active", active != null ? active : true);
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/payment-methods", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        PaymentMethodItem pm = new PaymentMethodItem();
+        pm.name = name;
+        pm.bankName = bankName;
+        pm.accountNumber = accountNumber;
+        pm.accountHolderName = accountHolderName;
+        pm.qrImage = qrImage;
+        pm.active = active;
+        if (resp != null && resp.result != null) {
+            JsonNode rNode = resp.result.has("paymentMethod") ? resp.result.get("paymentMethod") : resp.result;
+            if (rNode.has("id")) {
+                pm.id = rNode.get("id").asLong();
+            }
+        }
+        return pm;
+    }
+
+    public static PaymentMethodItem updatePaymentMethod(Long id, String name, String bankName, String accountNumber,
+            String accountHolderName, String qrImage, Boolean active) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("name", name);
+        req.put("bankName", bankName != null ? bankName : "");
+        req.put("accountNumber", accountNumber != null ? accountNumber : "");
+        req.put("accountHolderName", accountHolderName != null ? accountHolderName : "");
+        req.put("qrImage", qrImage != null ? qrImage : "");
+        req.put("active", active != null ? active : true);
+
+        ApiClient.put("/api/payment-methods/" + id, req, new TypeReference<ApiResponse<JsonNode>>() {
+        });
+
+        PaymentMethodItem pm = new PaymentMethodItem();
+        pm.id = id;
+        pm.name = name;
+        pm.bankName = bankName;
+        pm.accountNumber = accountNumber;
+        pm.accountHolderName = accountHolderName;
+        pm.qrImage = qrImage;
+        pm.active = active;
+        return pm;
+    }
+
+    public static void deletePaymentMethod(Long id) {
+        ApiClient.delete("/api/payment-methods/" + id);
+    }
+
+    // ============== STAFF (NHÂN SỰ) ==============
+    public static List<Staff> staff() {
+        PageResponse<JsonNode> page = ApiClient.get("/api/staff?pageNo=1&pageSize=1000",
+                new TypeReference<PageResponse<JsonNode>>() {
+                });
+        if (page == null || page.getContent() == null)
+            return new ArrayList<>();
+
+        List<Staff> list = new ArrayList<>();
+        for (JsonNode n : page.getContent()) {
+            Staff s = new Staff();
+            s.id = n.hasNonNull("id") ? n.get("id").asLong() : null;
+            s.code = s.id != null ? String.format("TK%03d", s.id) : "";
+            s.username = n.hasNonNull("username") ? n.get("username").asText() : "";
+            s.fullName = n.hasNonNull("fullName") ? n.get("fullName").asText() : "";
+            s.email = n.hasNonNull("email") ? n.get("email").asText() : "";
+            s.phone = n.hasNonNull("phoneNumber") ? n.get("phoneNumber").asText() : "";
+            s.jobTitle = n.hasNonNull("jobTitle") ? n.get("jobTitle").asText() : "";
+
+            if (n.hasNonNull("role")) {
+                JsonNode rNode = n.get("role");
+                String rText = rNode.isObject() && rNode.hasNonNull("name") ? rNode.get("name").asText() : rNode.asText();
+                s.role = (rText != null && !rText.isBlank() && !"null".equalsIgnoreCase(rText)) ? rText : null;
+            }
+            s.role = Staff.resolveRole(s.role, s.username);
+
+            boolean active = !n.has("active") || n.get("active").asBoolean();
+            s.status = active ? "ACTIVE" : "INACTIVE";
+            s.shift = null;
+            s.createdAt = n.has("createdAt")
+                    ? n.get("createdAt").asText().substring(0, Math.min(10, n.get("createdAt").asText().length()))
+                    : "";
+
+            UserAccount u = new UserAccount();
+            u.id = s.id;
+            u.username = s.username;
+            u.fullName = s.fullName;
+            u.email = s.email;
+            u.phone = s.phone;
+            u.role = s.role;
+            u.status = s.status;
+            s.user = u;
+
+            list.add(s);
+        }
+        return list;
+    }
+
+    public static Staff createStaff(String username, String password, String fullName,
+            String email, String phone, String jobTitle,
+            String role, String shift) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("username", username);
+        req.put("password", password != null && !password.isBlank() ? password : "password123");
+        req.put("fullName", fullName);
+        req.put("email", email != null && !email.isBlank() ? email : username + "@hotel.vn");
+        req.put("phoneNumber", phone != null && !phone.isBlank() ? phone : "0900000000");
+        req.put("jobTitle", jobTitle != null && !jobTitle.isBlank() ? jobTitle : "Nhân viên");
+        req.put("role", role != null ? role.toUpperCase() : "RECEPTION");
+        req.put("active", true);
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/staff", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        Staff s = new Staff();
         s.username = username;
         s.fullName = fullName;
         s.email = email;
@@ -667,131 +740,886 @@ public class ApiService {
         s.jobTitle = jobTitle;
         s.role = role;
         s.shift = shift;
-        if (s.user != null) {
-            s.user.username = username;
-            s.user.fullName = fullName;
-            s.user.email = email;
-            s.user.phone = phone;
-            s.user.role = role;
+        s.status = "ACTIVE";
+        if (resp != null && resp.result != null && resp.result.has("id")) {
+            s.id = resp.result.get("id").asLong();
+            s.code = String.format("TK%03d", s.id);
         }
         return s;
     }
 
-    public static synchronized Staff toggleStaffStatus(Long id) {
-        sleep();
-        Staff s = STAFF.stream().filter(x -> x.id.equals(id)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy nhân viên."));
-        s.status = "ACTIVE".equalsIgnoreCase(s.status) ? "INACTIVE" : "ACTIVE";
-        if (s.user != null) s.user.status = s.status;
+    public static Staff updateStaff(Long id, String username, String fullName,
+            String email, String phone, String jobTitle,
+            String role, String shift) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("username", username);
+        req.put("fullName", fullName);
+        req.put("email", email != null && !email.isBlank() ? email : username + "@hotel.vn");
+        req.put("phoneNumber", phone != null && !phone.isBlank() ? phone : "0900000000");
+        req.put("jobTitle", jobTitle != null && !jobTitle.isBlank() ? jobTitle : "Nhân viên");
+        req.put("role", role != null ? role.toUpperCase() : "RECEPTION");
+        req.put("active", true);
+
+        ApiClient.put("/api/staff/" + id, req, new TypeReference<ApiResponse<JsonNode>>() {
+        });
+
+        Staff s = new Staff();
+        s.id = id;
+        s.code = String.format("TK%03d", id);
+        s.username = username;
+        s.fullName = fullName;
+        s.email = email;
+        s.phone = phone;
+        s.jobTitle = jobTitle;
+        s.role = role;
+        s.shift = shift;
+        s.status = "ACTIVE";
         return s;
     }
 
-    public static synchronized void deleteStaff(Long id) {
-        sleep();
-        STAFF.removeIf(s -> s.id.equals(id));
+    public static Staff toggleStaffStatus(Long id) {
+        ApiResponse<JsonNode> current = ApiClient.get("/api/staff/" + id, new TypeReference<ApiResponse<JsonNode>>() {
+        });
+        if (current != null && current.result != null) {
+            JsonNode n = current.result;
+            boolean active = !n.has("active") || n.get("active").asBoolean();
+            Map<String, Object> req = new HashMap<>();
+            req.put("username", n.has("username") ? n.get("username").asText() : "");
+            req.put("fullName", n.has("fullName") ? n.get("fullName").asText() : "");
+            req.put("email", n.has("email") ? n.get("email").asText() : "");
+            req.put("phoneNumber", n.has("phoneNumber") ? n.get("phoneNumber").asText() : "0900000000");
+            req.put("jobTitle", n.has("jobTitle") ? n.get("jobTitle").asText() : "Nhân viên");
+            req.put("role",
+                    n.has("role")
+                            ? (n.get("role").isObject() ? n.get("role").get("name").asText() : n.get("role").asText())
+                            : "RECEPTION");
+            req.put("active", !active);
+
+            ApiClient.put("/api/staff/" + id, req, new TypeReference<ApiResponse<JsonNode>>() {
+            });
+
+            Staff s = new Staff();
+            s.id = id;
+            s.status = !active ? "ACTIVE" : "INACTIVE";
+            return s;
+        }
+        return null;
     }
 
-    public static synchronized Staff createStaff(String fullName, String jobTitle, String shift, String phone, Long userId) {
-        return createStaff("user" + nextStaffId, "123456", fullName, "", phone, jobTitle, "RECEPTION", shift);
+    public static void deleteStaff(Long id) {
+        ApiClient.delete("/api/staff/" + id);
     }
 
-    // ============== WORK SHIFTS (ca làm việc) ==============
-    public static synchronized List<WorkShift> workShifts() { sleep(); return new ArrayList<>(WORK_SHIFTS); }
-
-    public static synchronized WorkShift createWorkShift(String shiftName, String startTime, String endTime) {
-        sleep();
-        if (WORK_SHIFTS.stream().anyMatch(w -> w.shiftName.equalsIgnoreCase(shiftName)))
-            throw new ApiClient.ApiException("Tên ca \"" + shiftName + "\" đã tồn tại.");
-        WorkShift w = workShift(nextWorkShiftId++, shiftName, startTime, endTime);
-        WORK_SHIFTS.add(w);
-        return w;
+    public static Staff createStaff(String fullName, String jobTitle, String shift, String phone, Long userId) {
+        return createStaff("user" + System.currentTimeMillis() % 10000, "123456", fullName, "", phone, jobTitle,
+                "RECEPTION", shift);
     }
 
-    public static synchronized WorkShift updateWorkShift(Long id, String shiftName, String startTime, String endTime) {
-        sleep();
-        WorkShift w = WORK_SHIFTS.stream().filter(x -> x.id.equals(id)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy ca làm việc."));
-        w.shiftName = shiftName;
-        w.startTime = startTime;
-        w.endTime = endTime;
-        return w;
+    // ============== WORK SHIFTS (CA LÀM VIỆC) ==============
+    public static List<WorkShift> workShifts() {
+        PageResponse<JsonNode> page = ApiClient.get("/api/workshift?pageNo=1&pageSize=1000",
+                new TypeReference<PageResponse<JsonNode>>() {
+                });
+        if (page == null || page.getContent() == null)
+            return new ArrayList<>();
+
+        List<WorkShift> list = new ArrayList<>();
+        for (JsonNode n : page.getContent()) {
+            WorkShift ws = new WorkShift();
+            ws.id = n.has("id") ? n.get("id").asLong() : null;
+
+            if (n.has("name") && !n.get("name").isNull() && !n.get("name").asText().trim().isEmpty()) {
+                ws.shiftName = n.get("name").asText().trim();
+            } else if (n.has("shiftName") && !n.get("shiftName").isNull()
+                    && !n.get("shiftName").asText().trim().isEmpty()) {
+                ws.shiftName = n.get("shiftName").asText().trim();
+            } else if (n.has("tenCa") && !n.get("tenCa").isNull()) {
+                ws.shiftName = n.get("tenCa").asText().trim();
+            } else {
+                ws.shiftName = "";
+            }
+
+            ws.startTime = n.has("startTime") ? formatTimeNode(n.get("startTime")) : "06:00";
+            ws.endTime = n.has("endTime") ? formatTimeNode(n.get("endTime")) : "14:00";
+            ws.active = !n.has("active") || n.get("active").asBoolean();
+            list.add(ws);
+        }
+        return list;
     }
 
-    public static synchronized void deleteWorkShift(Long id) {
-        sleep();
-        boolean inUse = SHIFT_ASSIGNMENTS.stream().anyMatch(sa -> sa.workShift != null && sa.workShift.id.equals(id));
-        if (inUse) throw new ApiClient.ApiException("Không thể xóa — ca này đang được phân công.");
-        WORK_SHIFTS.removeIf(w -> w.id.equals(id));
+    public static WorkShift createWorkShift(String shiftName, String startTime, String endTime) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("name", shiftName);
+        req.put("shiftName", shiftName);
+        req.put("startTime", ensureTimeSeconds(startTime));
+        req.put("endTime", ensureTimeSeconds(endTime));
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/workshift", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        WorkShift ws = new WorkShift();
+        ws.shiftName = shiftName;
+        ws.startTime = startTime;
+        ws.endTime = endTime;
+        ws.active = true;
+        if (resp != null && resp.result != null) {
+            JsonNode r = resp.result;
+            if (r.has("Ca làm việc:")) {
+                r = r.get("Ca làm việc:");
+            }
+            if (r.has("id")) {
+                ws.id = r.get("id").asLong();
+            }
+        }
+        return ws;
     }
 
-    // ============== SHIFT ASSIGNMENTS (phân ca) ==============
-    public static synchronized List<ShiftAssignment> shiftAssignments() { sleep(); return new ArrayList<>(SHIFT_ASSIGNMENTS); }
+    public static WorkShift updateWorkShift(Long id, String shiftName, String startTime, String endTime) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("name", shiftName);
+        req.put("shiftName", shiftName);
+        req.put("startTime", ensureTimeSeconds(startTime));
+        req.put("endTime", ensureTimeSeconds(endTime));
 
-    public static synchronized ShiftAssignment createShiftAssignment(Long staffId, Long workShiftId, String workDate) {
-        sleep();
-        Staff s = STAFF.stream().filter(x -> x.id.equals(staffId)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy nhân viên."));
-        WorkShift w = WORK_SHIFTS.stream().filter(x -> x.id.equals(workShiftId)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy ca làm việc."));
-        ShiftAssignment sa = shiftAssignment(nextShiftAssignmentId++, s, w, workDate);
-        SHIFT_ASSIGNMENTS.add(sa);
+        ApiClient.put("/api/workshift/" + id, req, new TypeReference<ApiResponse<JsonNode>>() {
+        });
+
+        WorkShift ws = new WorkShift();
+        ws.id = id;
+        ws.shiftName = shiftName;
+        ws.startTime = startTime;
+        ws.endTime = endTime;
+        ws.active = true;
+        return ws;
+    }
+
+    public static void deleteWorkShift(Long id) {
+        ApiClient.delete("/api/workshift/" + id);
+    }
+
+    // ============== SHIFT ASSIGNMENTS (PHÂN CA) ==============
+    public static PageResponse<ShiftAssignment> shiftAssignmentPage(int pageNo, int pageSize, String staffName,
+            Long workShiftId, String workDate) {
+        int safePage = Math.max(1, pageNo);
+        int safeSize = Math.max(1, pageSize);
+        boolean hasFilter = (staffName != null && !staffName.isBlank())
+                || workShiftId != null
+                || (workDate != null && !workDate.isBlank());
+
+        String basePath = hasFilter ? "/api/shift-assignments/search" : "/api/shift-assignments";
+        StringBuilder sb = new StringBuilder(basePath).append("?pageNo=").append(safePage)
+                .append("&pageSize=").append(safeSize)
+                .append("&sortBy=id&sortDir=asc");
+
+        if (staffName != null && !staffName.isBlank()) {
+            sb.append("&staffName=")
+                    .append(java.net.URLEncoder.encode(staffName.trim(), java.nio.charset.StandardCharsets.UTF_8));
+        }
+        if (workShiftId != null) {
+            sb.append("&workShiftId=").append(workShiftId);
+        }
+        if (workDate != null && !workDate.isBlank()) {
+            sb.append("&workDate=").append(formatToIsoDate(workDate.trim()));
+        }
+
+        PageResponse<JsonNode> page = ApiClient.get(sb.toString(),
+                new TypeReference<PageResponse<JsonNode>>() {
+                });
+
+        PageResponse<ShiftAssignment> res = new PageResponse<>();
+        if (page == null) {
+            res.pageNo = safePage;
+            res.pageSize = safeSize;
+            res.totalElements = 0;
+            res.totalPages = 1;
+            res.last = true;
+            res.content = new ArrayList<>();
+            return res;
+        }
+
+        res.pageNo = page.pageNo;
+        res.pageSize = page.pageSize;
+        res.totalElements = page.totalElements;
+        res.totalPages = Math.max(1, page.totalPages);
+        res.last = page.last;
+
+        List<Attendance> attendanceList = attendances();
+        List<ShiftAssignment> list = new ArrayList<>();
+        if (page.getContent() != null) {
+            for (JsonNode n : page.getContent()) {
+                ShiftAssignment sa = new ShiftAssignment();
+                sa.id = n.has("id") ? n.get("id").asLong() : null;
+
+                Staff s = new Staff();
+                if (n.has("staffId") && !n.get("staffId").isNull()) {
+                    s.id = n.get("staffId").asLong();
+                }
+                s.fullName = n.has("staffName") ? n.get("staffName").asText() : "";
+                sa.staff = s;
+
+                WorkShift ws = new WorkShift();
+                if (n.has("workShiftId") && !n.get("workShiftId").isNull()) {
+                    ws.id = n.get("workShiftId").asLong();
+                }
+                ws.shiftName = n.has("shiftName") ? n.get("shiftName").asText() : "";
+                ws.startTime = n.has("startTime") ? formatTimeNode(n.get("startTime")) : "";
+                ws.endTime = n.has("endTime") ? formatTimeNode(n.get("endTime")) : "";
+                sa.workShift = ws;
+
+                String dateStr = n.has("workDate") ? n.get("workDate").asText() : "";
+                sa.workDate = formatToVnDate(dateStr);
+
+                sa.attendance = attendanceList.stream()
+                        .filter(a -> a.shiftAssignment != null && Objects.equals(a.shiftAssignment.id, sa.id))
+                        .findFirst()
+                        .orElse(null);
+
+                list.add(sa);
+            }
+        }
+        res.content = list;
+        return res;
+    }
+
+    public static List<ShiftAssignment> shiftAssignments() {
+        PageResponse<ShiftAssignment> p = shiftAssignmentPage(1, 1000, null, null, null);
+        return p != null && p.getContent() != null ? p.getContent() : new ArrayList<>();
+    }
+
+    public static ShiftAssignment createShiftAssignment(Long staffId, Long workShiftId, String workDate) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("staffId", staffId);
+        req.put("workShiftId", workShiftId);
+        req.put("workDate", formatToIsoDate(workDate));
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/shift-assignments", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        ShiftAssignment sa = new ShiftAssignment();
+        sa.workDate = workDate;
+        if (resp != null && resp.result != null) {
+            JsonNode n = resp.result.has("shiftAssignment") ? resp.result.get("shiftAssignment") : resp.result;
+            if (n.has("id"))
+                sa.id = n.get("id").asLong();
+        }
         return sa;
     }
 
-    public static synchronized void deleteShiftAssignment(Long id) {
-        sleep();
-        SHIFT_ASSIGNMENTS.removeIf(sa -> sa.id.equals(id));
+    public static ShiftAssignment updateShiftAssignment(Long id, Long staffId, Long workShiftId, String workDate) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("staffId", staffId);
+        req.put("workShiftId", workShiftId);
+        req.put("workDate", formatToIsoDate(workDate));
+
+        ApiResponse<JsonNode> resp = ApiClient.put("/api/shift-assignments/" + id, req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        ShiftAssignment sa = new ShiftAssignment();
+        sa.id = id;
+        sa.workDate = workDate;
+        if (resp != null && resp.result != null) {
+            JsonNode n = resp.result.has("shiftAssignment") ? resp.result.get("shiftAssignment") : resp.result;
+            if (n.has("id"))
+                sa.id = n.get("id").asLong();
+        }
+        return sa;
     }
 
-    // ============== ATTENDANCES (chấm công) ==============
-    public static synchronized List<Attendance> attendances() { sleep(); return new ArrayList<>(ATTENDANCES); }
-
-    public static synchronized Attendance createAttendance(Long shiftAssignmentId, String checkIn, String checkOut, String status, String note) {
-        sleep();
-        ShiftAssignment sa = SHIFT_ASSIGNMENTS.stream().filter(x -> x.id.equals(shiftAssignmentId)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy phân ca."));
-        Attendance att = attendance(nextAttendanceId++, sa, checkIn, checkOut, status, note);
-        ATTENDANCES.add(att);
-        sa.attendance = att;
-        return att;
+    public static void deleteShiftAssignment(Long id) {
+        ApiClient.delete("/api/shift-assignments/" + id);
     }
 
-    public static synchronized Attendance updateAttendance(Long id, String checkIn, String checkOut, String status, String note) {
-        sleep();
-        Attendance att = ATTENDANCES.stream().filter(x -> x.id.equals(id)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy bản ghi chấm công."));
-        att.checkInTime = checkIn;
-        att.checkOutTime = checkOut;
-        att.status = status;
-        att.note = note;
-        return att;
+    // ============== ATTENDANCES (CHẤM CÔNG) ==============
+    public static List<Attendance> attendances() {
+        PageResponse<JsonNode> page = ApiClient.get("/api/attendances?pageNo=1&pageSize=1000",
+                new TypeReference<PageResponse<JsonNode>>() {
+                });
+        if (page == null || page.getContent() == null)
+            return new ArrayList<>();
+
+        List<Attendance> list = new ArrayList<>();
+        for (JsonNode n : page.getContent()) {
+            list.add(parseAttendanceNode(n));
+        }
+        return list;
     }
 
-    // ============== USERS (tài khoản hệ thống) ==============
-    public static synchronized List<UserAccount> users() { sleep(); return new ArrayList<>(USERS); }
+    public static PageResponse<Attendance> attendancePage(
+            int pageNo, int pageSize, String staffName, Long workShiftId, String workDate, String status) {
+        StringBuilder url = new StringBuilder(
+                "/api/attendances/search?pageNo=" + pageNo + "&pageSize=" + pageSize + "&sortBy=id&sortDir=asc");
+        if (staffName != null && !staffName.isBlank()) {
+            url.append("&staffName=").append(URLEncoder.encode(staffName.trim(), StandardCharsets.UTF_8));
+        }
+        if (workShiftId != null) {
+            url.append("&workShiftId=").append(workShiftId);
+        }
+        if (workDate != null && !workDate.isBlank()) {
+            url.append("&workDate=").append(workDate.trim());
+        }
+        if (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status)) {
+            url.append("&status=")
+                    .append(URLEncoder.encode(mapFeAttendanceStatusToVietnamese(status), StandardCharsets.UTF_8));
+        }
 
-    public static synchronized UserAccount createUser(String username, String password, String email, String phone, String role) {
-        sleep();
-        if (USERS.stream().anyMatch(u -> u.username.equals(username)))
-            throw new ApiClient.ApiException("Tên đăng nhập đã tồn tại.");
-        UserAccount u = user(nextUserId++, username, "", role);
-        u.email = email;
-        u.phone = phone;
-        USERS.add(u);
-        PASSWORDS.put(username, (password == null || password.isBlank()) ? "123456" : password);
-        return u;
+        PageResponse<JsonNode> page = ApiClient.get(url.toString(), new TypeReference<PageResponse<JsonNode>>() {
+        });
+        if (page == null)
+            return new PageResponse<>();
+
+        PageResponse<Attendance> res = new PageResponse<>();
+        res.pageNo = page.pageNo;
+        res.pageSize = page.pageSize;
+        res.totalElements = page.totalElements;
+        res.totalPages = page.totalPages;
+        res.last = page.last;
+
+        List<Attendance> list = new ArrayList<>();
+        if (page.getContent() != null) {
+            for (JsonNode n : page.getContent()) {
+                list.add(parseAttendanceNode(n));
+            }
+        }
+        res.content = list;
+        return res;
     }
 
-    public static synchronized UserAccount toggleUserStatus(Long id) {
-        sleep();
-        UserAccount u = USERS.stream().filter(x -> x.id.equals(id)).findFirst()
-                .orElseThrow(() -> new ApiClient.ApiException("Không tìm thấy tài khoản."));
-        u.status = "ACTIVE".equals(u.status) ? "INACTIVE" : "ACTIVE";
-        return u;
+    private static Attendance parseAttendanceNode(JsonNode n) {
+        Attendance a = new Attendance();
+        a.id = n.has("id") && !n.get("id").isNull() ? n.get("id").asLong() : null;
+        a.checkInTime = n.has("checkInTime") && !n.get("checkInTime").isNull()
+                ? formatTime(n.get("checkInTime").asText())
+                : null;
+        a.checkOutTime = n.has("checkOutTime") && !n.get("checkOutTime").isNull()
+                ? formatTime(n.get("checkOutTime").asText())
+                : null;
+        a.status = n.has("status") && !n.get("status").isNull() ? mapBackendAttendanceStatus(n.get("status").asText())
+                : "DU_CONG";
+        a.note = n.has("note") && !n.get("note").isNull() ? n.get("note").asText() : "";
+
+        ShiftAssignment sa = new ShiftAssignment();
+        if (n.has("shiftAssignmentId") && !n.get("shiftAssignmentId").isNull()) {
+            sa.id = n.get("shiftAssignmentId").asLong();
+        }
+        Staff st = new Staff();
+        st.fullName = n.has("staffName") && !n.get("staffName").isNull() ? n.get("staffName").asText() : "";
+        sa.staff = st;
+
+        WorkShift ws = new WorkShift();
+        if (n.has("workShiftName") && !n.get("workShiftName").isNull()) {
+            ws.shiftName = n.get("workShiftName").asText();
+        } else if (n.has("shiftName") && !n.get("shiftName").isNull()) {
+            ws.shiftName = n.get("shiftName").asText();
+        }
+        sa.workShift = ws;
+
+        if (n.has("workDate") && !n.get("workDate").isNull()) {
+            sa.workDate = n.get("workDate").asText();
+        }
+        a.shiftAssignment = sa;
+        return a;
     }
 
-    /** Giả lập độ trễ mạng nhẹ để trải nghiệm UI (loading…) giống gọi API thật. */
-    private static void sleep() {
-        try { Thread.sleep(150); } catch (InterruptedException ignored) {}
+    public static Attendance createAttendance(Long shiftAssignmentId, String checkIn, String checkOut, String status,
+            String note) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("shiftAssignmentId", shiftAssignmentId);
+        if (checkIn != null && !checkIn.isBlank())
+            req.put("checkInTime", ensureTimeSeconds(checkIn));
+        if (checkOut != null && !checkOut.isBlank())
+            req.put("checkOutTime", ensureTimeSeconds(checkOut));
+        req.put("status", mapFeAttendanceStatusToVietnamese(status));
+        req.put("note", note != null ? note : "");
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/attendances", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        Attendance a = new Attendance();
+        a.checkInTime = checkIn;
+        a.checkOutTime = checkOut;
+        a.status = status;
+        a.note = note;
+        if (resp != null && resp.result != null) {
+            JsonNode n = resp.result.has("attendance") ? resp.result.get("attendance") : resp.result;
+            if (n.has("id"))
+                a.id = n.get("id").asLong();
+        }
+        return a;
+    }
+
+    public static Attendance updateAttendance(Long id, String checkIn, String checkOut, String status, String note) {
+        Map<String, Object> req = new HashMap<>();
+        if (checkIn != null && !checkIn.isBlank())
+            req.put("checkInTime", ensureTimeSeconds(checkIn));
+        if (checkOut != null && !checkOut.isBlank())
+            req.put("checkOutTime", ensureTimeSeconds(checkOut));
+        req.put("status", mapFeAttendanceStatusToVietnamese(status));
+        req.put("note", note != null ? note : "");
+
+        ApiClient.put("/api/attendances/" + id, req, new TypeReference<ApiResponse<JsonNode>>() {
+        });
+
+        Attendance a = new Attendance();
+        a.id = id;
+        a.checkInTime = checkIn;
+        a.checkOutTime = checkOut;
+        a.status = status;
+        a.note = note;
+        return a;
+    }
+
+    public static void deleteAttendance(Long id) {
+        ApiClient.delete("/api/attendances/" + id);
+    }
+
+    // ============== USERS (TÀI KHOẢN HỆ THỐNG) ==============
+    public static List<UserAccount> users() {
+        return staff().stream().map(s -> s.user).filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    public static UserAccount createUser(String username, String password, String email, String phone, String role) {
+        Staff s = createStaff(username, password, username, email, phone, "Nhân viên", role, "Toàn thời gian");
+        return s.user;
+    }
+
+    public static UserAccount toggleUserStatus(Long id) {
+        Staff s = toggleStaffStatus(id);
+        return s != null ? s.user : null;
+    }
+
+    // ============== BOOKINGS (ĐẶT PHÒNG & LƯU TRÚ) ==============
+    public static List<Booking> bookings() {
+        try {
+            PageResponse<JsonNode> page = ApiClient.get("/api/booking?pageNo=1&pageSize=1000&sortBy=id&sortDir=desc",
+                    new TypeReference<PageResponse<JsonNode>>() {
+                    });
+            if (page == null || page.getContent() == null)
+                return new ArrayList<>();
+
+            List<Booking> list = new ArrayList<>();
+            for (JsonNode n : page.getContent()) {
+                Booking b = new Booking();
+                b.id = n.hasNonNull("id") ? n.get("id").asLong() : null;
+                b.code = b.id != null ? String.format("DP%03d", b.id) : "DP000";
+
+                Customer c = new Customer();
+                c.id = n.hasNonNull("customerId") ? n.get("customerId").asLong() : null;
+                c.fullName = n.hasNonNull("customerName") ? n.get("customerName").asText() : "";
+                c.phone = n.hasNonNull("customerPhone") ? n.get("customerPhone").asText() : "";
+                c.code = c.id != null ? String.format("KH%03d", c.id) : "";
+                b.customer = c;
+
+                Room r = new Room();
+                r.id = n.hasNonNull("roomId") ? n.get("roomId").asLong() : null;
+                r.number = n.hasNonNull("roomNumber") ? n.get("roomNumber").asText() : "";
+                r.code = "P" + r.number;
+                RoomType rt = new RoomType();
+                rt.name = n.hasNonNull("roomTypeName") ? n.get("roomTypeName").asText() : "Tiêu chuẩn";
+                r.roomType = rt;
+                b.room = r;
+
+                b.checkIn = n.hasNonNull("checkInDate") ? formatToVnDate(n.get("checkInDate").asText()) : "—";
+                b.checkOutPlanned = n.hasNonNull("expectedCheckOutDate")
+                        ? formatToVnDate(n.get("expectedCheckOutDate").asText())
+                        : "—";
+                b.actualCheckIn = n.hasNonNull("actualCheckInTime") ? formatDateTimeNode(n.get("actualCheckInTime"))
+                        : null;
+                b.actualCheckOut = n.hasNonNull("actualCheckOutTime") ? formatDateTimeNode(n.get("actualCheckOutTime"))
+                        : null;
+                b.numberOfGuests = n.hasNonNull("numberOfGuests") ? n.get("numberOfGuests").asInt() : 1;
+                b.status = n.hasNonNull("status") ? n.get("status").asText() : "DAT_TRUOC";
+                b.notes = n.hasNonNull("note") ? n.get("note").asText() : "";
+
+                list.add(b);
+            }
+            return list;
+        } catch (Exception ex) {
+            System.err.println("Lỗi khi tải danh sách đặt phòng: " + ex.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    public static Booking createBooking(Long customerId, String newCustomerName, String newCustomerPhone,
+            Long roomId, String checkIn, String checkOutPlanned, boolean checkInNow) {
+        return createBooking(customerId, newCustomerName, newCustomerPhone, null, roomId, checkIn, checkOutPlanned, 1,
+                "", checkInNow);
+    }
+
+    public static Booking createBooking(Long customerId, String newCustomerName, String newCustomerPhone,
+            String newCustomerCitizenId,
+            Long roomId, String checkIn, String checkOutPlanned, Integer guests, String notes, boolean checkInNow) {
+        Long effectiveCustomerId = customerId;
+        if (effectiveCustomerId == null && newCustomerName != null && !newCustomerName.isBlank()) {
+            Customer c = createCustomer(newCustomerName.trim(),
+                    newCustomerPhone != null ? newCustomerPhone.trim() : "",
+                    "guest." + System.currentTimeMillis() % 100000 + "@hotel.vn",
+                    newCustomerCitizenId != null && !newCustomerCitizenId.isBlank() ? newCustomerCitizenId.trim()
+                            : "000000000000");
+            effectiveCustomerId = c.id;
+        }
+
+        if (effectiveCustomerId == null) {
+            throw new ApiClient.ApiException("Vui lòng chọn hoặc nhập thông tin khách hàng.");
+        }
+
+        Map<String, Object> req = new HashMap<>();
+        req.put("customerId", effectiveCustomerId);
+        req.put("roomId", roomId);
+        req.put("checkInDate", formatToIsoDate(checkIn));
+        req.put("expectedCheckOutDate", formatToIsoDate(checkOutPlanned));
+        req.put("numberOfGuests", guests != null && guests > 0 ? guests : 1);
+        req.put("note", notes != null ? notes : "");
+        req.put("status", checkInNow ? "DANG_O" : "DAT_TRUOC");
+
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/booking", req,
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+
+        Booking b = new Booking();
+        if (resp != null && resp.result != null) {
+            JsonNode n = resp.result;
+            b.id = n.hasNonNull("id") ? n.get("id").asLong() : null;
+            b.code = b.id != null ? String.format("DP%03d", b.id) : "DP000";
+            b.status = n.hasNonNull("status") ? n.get("status").asText() : (checkInNow ? "DANG_O" : "DAT_TRUOC");
+        }
+        return b;
+    }
+
+    public static Booking checkIn(Long bookingId) {
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/booking/" + bookingId + "/check-in", Collections.emptyMap(),
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+        Booking b = new Booking();
+        b.id = bookingId;
+        b.status = "DANG_O";
+        return b;
+    }
+
+    public static Booking checkOutBooking(Long bookingId) {
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/booking/" + bookingId + "/check-out", Collections.emptyMap(),
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+        Booking b = new Booking();
+        b.id = bookingId;
+        b.status = "DA_TRA";
+        return b;
+    }
+
+    public static Booking cancelBooking(Long bookingId) {
+        ApiResponse<JsonNode> resp = ApiClient.post("/api/booking/" + bookingId + "/cancel", Collections.emptyMap(),
+                new TypeReference<ApiResponse<JsonNode>>() {
+                });
+        Booking b = new Booking();
+        b.id = bookingId;
+        b.status = "DA_HUY";
+        return b;
+    }
+
+    public static void deleteBooking(Long bookingId) {
+        ApiClient.delete("/api/booking/" + bookingId);
+    }
+
+    // ============== INVOICES (HÓA ĐƠN) ==============
+    public static List<Invoice> invoices() {
+        return new ArrayList<>();
+    }
+
+    public static Invoice checkout(Long bookingId, Long roomId, Long customerId, String checkOutDate,
+            BigDecimal roomFee, BigDecimal penaltyFee, List<Map<String, Object>> services) {
+        if (roomId != null) {
+            updateRoomStatus(roomId, "DANG_DON");
+        }
+        Invoice inv = new Invoice();
+        inv.code = "HD" + System.currentTimeMillis() % 1000;
+        inv.paymentStatus = "DA_THANH_TOAN";
+        inv.total = (roomFee != null ? roomFee : BigDecimal.ZERO)
+                .add(penaltyFee != null ? penaltyFee : BigDecimal.ZERO);
+        return inv;
+    }
+
+    public static void deleteInvoice(Long id) {
+        // Endpoint xóa hóa đơn nếu có
+    }
+
+    // ============== HELPERS CHUYỂN ĐỔI DỮ LIỆU ==============
+    private static String mapBackendRoomStatus(String status) {
+        if (status == null)
+            return "TRONG";
+        return switch (status.trim().toLowerCase()) {
+            case "đang ở", "dang_o" -> "DANG_O";
+            case "đang dọn", "dang_don" -> "DANG_DON";
+            case "đang bảo trì", "bảo trì", "bao_tri", "dang_bao_tri" -> "BAO_TRI";
+            default -> "TRONG";
+        };
+    }
+
+    private static String mapFeRoomStatusToVietnamese(String feStatus) {
+        if (feStatus == null)
+            return "Trống";
+        return switch (feStatus.toUpperCase()) {
+            case "DANG_O" -> "Đang ở";
+            case "DANG_DON" -> "Đang dọn";
+            case "BAO_TRI", "DANG_BAO_TRI" -> "Đang bảo trì";
+            default -> "Trống";
+        };
+    }
+
+    private static String mapBackendAttendanceStatus(String status) {
+        if (status == null)
+            return "DU_CONG";
+        return switch (status.trim().toLowerCase()) {
+            case "đi trễ", "di_tre" -> "DI_TRE";
+            case "về sớm", "ve_som" -> "VE_SOM";
+            case "vắng mặt", "vang_mat" -> "VANG_MAT";
+            default -> "DU_CONG";
+        };
+    }
+
+    private static String mapFeAttendanceStatusToVietnamese(String feStatus) {
+        if (feStatus == null)
+            return "Đủ công";
+        return switch (feStatus.toUpperCase()) {
+            case "DI_TRE" -> "Đi trễ";
+            case "VE_SOM" -> "Về sớm";
+            case "VANG_MAT" -> "Vắng mặt";
+            default -> "Đủ công";
+        };
+    }
+
+    private static String formatDateTimeNode(JsonNode node) {
+        if (node == null || node.isNull())
+            return null;
+        if (node.isArray() && node.size() >= 5) {
+            int y = node.get(0).asInt();
+            int m = node.get(1).asInt();
+            int d = node.get(2).asInt();
+            int h = node.get(3).asInt();
+            int min = node.get(4).asInt();
+            return String.format("%02d:%02d %02d/%02d/%04d", h, min, d, m, y);
+        }
+        String txt = node.asText();
+        if (txt == null || txt.isBlank())
+            return null;
+        if (txt.contains("T")) {
+            String[] parts = txt.split("T");
+            String datePart = formatToVnDate(parts[0]);
+            String timePart = parts.length > 1 && parts[1].length() >= 5 ? parts[1].substring(0, 5) : "";
+            return timePart.isEmpty() ? datePart : timePart + " " + datePart;
+        }
+        return txt;
+    }
+
+    private static String formatTimeNode(JsonNode node) {
+        if (node == null || node.isNull())
+            return "";
+        if (node.isArray() && node.size() >= 2) {
+            int h = node.get(0).asInt();
+            int m = node.get(1).asInt();
+            return String.format("%02d:%02d", h, m);
+        }
+        return formatTime(node.asText());
+    }
+
+    private static String formatTime(String time) {
+        if (time == null || time.isBlank())
+            return "";
+        String t = time.trim();
+        if (t.contains("T")) {
+            String[] parts = t.split("T");
+            if (parts.length > 1)
+                t = parts[1];
+        }
+        if (t.length() >= 5)
+            return t.substring(0, 5);
+        return t;
+    }
+
+    private static String ensureTimeSeconds(String time) {
+        if (time == null || time.isBlank())
+            return "00:00:00";
+        String t = time.trim();
+        if (t.length() == 5)
+            return t + ":00";
+        return t;
+    }
+
+    private static String formatToVnDate(String dateStr) {
+        if (dateStr == null || dateStr.isBlank())
+            return "";
+        try {
+            if (dateStr.contains("-")) {
+                LocalDate d = LocalDate.parse(dateStr, DATE_ISO);
+                return d.format(DATE_VN);
+            }
+        } catch (Exception ignored) {
+        }
+        return dateStr;
+    }
+
+    private static String formatToIsoDate(String dateStr) {
+        if (dateStr == null || dateStr.isBlank())
+            return LocalDate.now().toString();
+        try {
+            if (dateStr.contains("/")) {
+                LocalDate d = LocalDate.parse(dateStr, DATE_VN);
+                return d.format(DATE_ISO);
+            }
+        } catch (Exception ignored) {
+        }
+        return dateStr;
+    }
+
+    // ============== BOOKING SERVICE DETAILS (CHI TIẾT DỊCH VỤ PHÒNG) ==============
+    public static PageResponse<BookingServiceDetail> bookingServiceDetailsPage(int pageNo, int pageSize, Long bookingId) {
+        int safePage = Math.max(1, pageNo);
+        int safeSize = Math.max(1, pageSize);
+        String path = "/api/booking-service-details?pageNo=" + safePage + "&pageSize=" + safeSize + "&sortBy=id&sortDir=desc";
+        if (bookingId != null) {
+            path += "&bookingId=" + bookingId;
+        }
+
+        try {
+            PageResponse<JsonNode> page = ApiClient.get(path, new TypeReference<PageResponse<JsonNode>>() {
+            });
+
+            PageResponse<BookingServiceDetail> res = new PageResponse<>();
+            if (page == null) {
+                res.pageNo = safePage;
+                res.pageSize = safeSize;
+                res.totalElements = 0;
+                res.totalPages = 1;
+                res.last = true;
+                res.content = new ArrayList<>();
+                return res;
+            }
+
+            res.pageNo = page.pageNo;
+            res.pageSize = page.pageSize;
+            res.totalElements = page.totalElements;
+            res.totalPages = Math.max(1, page.totalPages);
+            res.last = page.last;
+
+            List<BookingServiceDetail> list = new ArrayList<>();
+            if (page.getContent() != null) {
+                for (JsonNode n : page.getContent()) {
+                    list.add(mapBookingServiceDetail(n));
+                }
+            }
+            res.content = list;
+            return res;
+        } catch (ApiClient.ApiException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("404")) {
+                PageResponse<BookingServiceDetail> empty = new PageResponse<>();
+                empty.pageNo = safePage;
+                empty.pageSize = safeSize;
+                empty.totalElements = 0;
+                empty.totalPages = 1;
+                empty.last = true;
+                empty.content = new ArrayList<>();
+                return empty;
+            }
+            throw ex;
+        }
+    }
+
+    public static List<BookingServiceDetail> bookingServiceDetailsByBooking(Long bookingId) {
+        if (bookingId == null) return new ArrayList<>();
+        try {
+            ApiResponse<JsonNode> resp = ApiClient.get("/api/booking-service-details/booking/" + bookingId,
+                    new TypeReference<ApiResponse<JsonNode>>() {
+                    });
+            List<BookingServiceDetail> list = new ArrayList<>();
+            if (resp != null && resp.result != null && resp.result.has("details")) {
+                JsonNode arr = resp.result.get("details");
+                if (arr.isArray()) {
+                    for (JsonNode n : arr) {
+                        list.add(mapBookingServiceDetail(n));
+                    }
+                }
+            }
+            return list;
+        } catch (ApiClient.ApiException ex) {
+            return new ArrayList<>();
+        }
+    }
+
+    public static BookingServiceDetail createBookingServiceDetail(Long bookingId, Long serviceId, int quantity, BigDecimal unitPrice) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("bookingId", bookingId);
+        req.put("serviceId", serviceId);
+        req.put("quantity", quantity);
+        req.put("unitPrice", unitPrice);
+
+        try {
+            ApiResponse<JsonNode> resp = ApiClient.post("/api/booking-service-details", req,
+                    new TypeReference<ApiResponse<JsonNode>>() {
+                    });
+
+            if (resp != null && resp.result != null && resp.result.has("detail")) {
+                return mapBookingServiceDetail(resp.result.get("detail"));
+            }
+            return null;
+        } catch (ApiClient.ApiException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("404")) {
+                throw new ApiClient.ApiException("API dịch vụ phòng chưa được kích hoạt trên server. Vui lòng Rerun/Khởi động lại Backend (HotelManagementProjectApplication) trong IntelliJ!");
+            }
+            throw ex;
+        }
+    }
+
+    public static BookingServiceDetail updateBookingServiceDetail(Long id, Long bookingId, Long serviceId, int quantity, BigDecimal unitPrice) {
+        Map<String, Object> req = new HashMap<>();
+        req.put("bookingId", bookingId);
+        req.put("serviceId", serviceId);
+        req.put("quantity", quantity);
+        req.put("unitPrice", unitPrice);
+
+        try {
+            ApiResponse<JsonNode> resp = ApiClient.put("/api/booking-service-details/" + id, req,
+                    new TypeReference<ApiResponse<JsonNode>>() {
+                    });
+
+            if (resp != null && resp.result != null && resp.result.has("detail")) {
+                return mapBookingServiceDetail(resp.result.get("detail"));
+            }
+            return null;
+        } catch (ApiClient.ApiException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("404")) {
+                throw new ApiClient.ApiException("API dịch vụ phòng chưa được kích hoạt trên server. Vui lòng Rerun/Khởi động lại Backend (HotelManagementProjectApplication) trong IntelliJ!");
+            }
+            throw ex;
+        }
+    }
+
+    public static void deleteBookingServiceDetail(Long id) {
+        try {
+            ApiClient.delete("/api/booking-service-details/" + id);
+        } catch (ApiClient.ApiException ex) {
+            if (ex.getMessage() != null && ex.getMessage().contains("404")) {
+                throw new ApiClient.ApiException("API dịch vụ phòng chưa được kích hoạt trên server. Vui lòng Rerun/Khởi động lại Backend (HotelManagementProjectApplication) trong IntelliJ!");
+            }
+            throw ex;
+        }
+    }
+
+    private static BookingServiceDetail mapBookingServiceDetail(JsonNode n) {
+        BookingServiceDetail d = new BookingServiceDetail();
+        d.id = n.has("id") && !n.get("id").isNull() ? n.get("id").asLong() : null;
+        d.bookingId = n.has("bookingId") && !n.get("bookingId").isNull() ? n.get("bookingId").asLong() : null;
+        d.roomNumber = n.has("roomNumber") && !n.get("roomNumber").isNull() ? n.get("roomNumber").asText() : "";
+        d.customerName = n.has("customerName") && !n.get("customerName").isNull() ? n.get("customerName").asText() : "";
+        d.serviceId = n.has("serviceId") && !n.get("serviceId").isNull() ? n.get("serviceId").asLong() : null;
+        d.serviceName = n.has("serviceName") && !n.get("serviceName").isNull() ? n.get("serviceName").asText() : "";
+        d.quantity = n.has("quantity") && !n.get("quantity").isNull() ? n.get("quantity").asInt() : 1;
+        d.unitPrice = n.has("unitPrice") && !n.get("unitPrice").isNull()
+                ? new BigDecimal(n.get("unitPrice").asText()) : BigDecimal.ZERO;
+        d.totalPrice = n.has("totalPrice") && !n.get("totalPrice").isNull()
+                ? new BigDecimal(n.get("totalPrice").asText()) : d.unitPrice.multiply(BigDecimal.valueOf(d.quantity));
+        d.usedAt = n.has("usedAt") ? formatDateTimeNode(n.get("usedAt")) : "";
+        return d;
     }
 }

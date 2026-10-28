@@ -16,10 +16,17 @@ public class WorkShiftConverter {
 
     public WorkShift toWorkShiftEntity(WorkShiftRequest workShiftRequest) {
         WorkShift workShiftEntity = modelMapper.map(workShiftRequest, WorkShift.class);
+        if (workShiftRequest.getName() != null) {
+            workShiftEntity.setShiftName(workShiftRequest.getName());
+        }
         return workShiftEntity;
     }
     public WorkShiftResponse toWorkShiftResponse(WorkShift workShiftEntity) {
         WorkShiftResponse workShiftResponse = modelMapper.map(workShiftEntity, WorkShiftResponse.class);
+        if (workShiftEntity.getShiftName() != null) {
+            workShiftResponse.setName(workShiftEntity.getShiftName());
+            workShiftResponse.setShiftName(workShiftEntity.getShiftName());
+        }
         return workShiftResponse;
     }
 }

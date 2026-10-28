@@ -54,7 +54,7 @@ public class InvoicesView {
 
         // Top Toolbar
         TextField search = new TextField();
-        search.setPromptText("Tìm theo mã HĐ, tên khách, số phòng...");
+        search.setPromptText("Tìm theo ID hóa đơn, tên khách, số phòng...");
         search.setPrefWidth(280);
 
         ComboBox<String> statusFilter = new ComboBox<>();
@@ -81,7 +81,7 @@ public class InvoicesView {
 
             filteredData.setPredicate(inv -> {
                 boolean matchSearch = q.isEmpty()
-                        || (inv.code != null && inv.code.toLowerCase().contains(q))
+                        || (inv.id != null && String.valueOf(inv.id).contains(q))
                         || (inv.customer != null && inv.customer.fullName != null && inv.customer.fullName.toLowerCase().contains(q))
                         || (inv.room != null && inv.room.number != null && inv.room.number.contains(q));
 
@@ -107,20 +107,13 @@ public class InvoicesView {
         idCol.setMinWidth(75);
         idCol.setPrefWidth(85);
         idCol.setCellValueFactory(d -> new SimpleStringProperty(String.valueOf(d.getValue().id)));
-        idCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER; -fx-font-size: 13.5px; -fx-text-fill: #FFFFFF;");
+        idCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER_LEFT; -fx-font-size: 13.5px; -fx-text-fill: #FFFFFF;");
 
-        TableColumn<Invoice, String> codeCol = new TableColumn<>("Mã HĐ");
-        codeCol.setMinWidth(115);
-        codeCol.setPrefWidth(125);
-        codeCol.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().code != null ? d.getValue().code : String.format("HD%03d", d.getValue().id)));
-        codeCol.setStyle("-fx-font-weight: 800; -fx-text-fill: #F59E0B; -fx-font-size: 13.5px;");
-
-        TableColumn<Invoice, String> bookCodeCol = new TableColumn<>("Mã ĐP");
+        TableColumn<Invoice, String> bookCodeCol = new TableColumn<>("ID Đặt phòng");
         bookCodeCol.setMinWidth(110);
         bookCodeCol.setPrefWidth(120);
         bookCodeCol.setCellValueFactory(d -> new SimpleStringProperty(
-                d.getValue().booking != null && d.getValue().booking.code != null ? d.getValue().booking.code : "DP000"));
+                d.getValue().booking != null ? "#" + d.getValue().booking.id : "—"));
         bookCodeCol.setStyle("-fx-font-weight: 700; -fx-text-fill: #38BDF8; -fx-font-size: 13.5px;");
 
         TableColumn<Invoice, String> nameCol = new TableColumn<>("Khách hàng");
@@ -135,34 +128,34 @@ public class InvoicesView {
         roomCol.setPrefWidth(105);
         roomCol.setCellValueFactory(d -> new SimpleStringProperty(
                 d.getValue().room != null ? d.getValue().room.number : "—"));
-        roomCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER;");
+        roomCol.setStyle("-fx-font-weight: 800; -fx-alignment: CENTER_LEFT;");
 
         TableColumn<Invoice, String> roomFeeCol = new TableColumn<>("Tiền phòng");
         roomFeeCol.setMinWidth(130);
         roomFeeCol.setPrefWidth(140);
-        roomFeeCol.setCellValueFactory(d -> new SimpleStringProperty(Util.money(d.getValue().roomFee) + " ₫"));
+        roomFeeCol.setCellValueFactory(d -> new SimpleStringProperty(Util.money(d.getValue().roomFee)));
         roomFeeCol.setStyle("-fx-font-weight: 600;");
 
         TableColumn<Invoice, String> svcFeeCol = new TableColumn<>("Tiền dịch vụ");
         svcFeeCol.setMinWidth(125);
         svcFeeCol.setPrefWidth(135);
-        svcFeeCol.setCellValueFactory(d -> new SimpleStringProperty(Util.money(d.getValue().serviceFee) + " ₫"));
+        svcFeeCol.setCellValueFactory(d -> new SimpleStringProperty(Util.money(d.getValue().serviceFee)));
         svcFeeCol.setStyle("-fx-font-weight: 600;");
 
         TableColumn<Invoice, String> penaltyCol = new TableColumn<>("Tiền phạt");
         penaltyCol.setMinWidth(115);
         penaltyCol.setPrefWidth(125);
-        penaltyCol.setCellValueFactory(d -> new SimpleStringProperty(Util.money(d.getValue().penaltyFee) + " ₫"));
+        penaltyCol.setCellValueFactory(d -> new SimpleStringProperty(Util.money(d.getValue().penaltyFee)));
 
         TableColumn<Invoice, String> discountCol = new TableColumn<>("Giảm giá");
         discountCol.setMinWidth(115);
         discountCol.setPrefWidth(125);
-        discountCol.setCellValueFactory(d -> new SimpleStringProperty(Util.money(d.getValue().discountFee) + " ₫"));
+        discountCol.setCellValueFactory(d -> new SimpleStringProperty(Util.money(d.getValue().discountFee)));
 
         TableColumn<Invoice, String> totalCol = new TableColumn<>("Tổng cộng");
         totalCol.setMinWidth(145);
         totalCol.setPrefWidth(155);
-        totalCol.setCellValueFactory(d -> new SimpleStringProperty(Util.money(d.getValue().total) + " ₫"));
+        totalCol.setCellValueFactory(d -> new SimpleStringProperty(Util.money(d.getValue().total)));
         totalCol.setStyle("-fx-font-weight: 800; -fx-text-fill: #10B981; -fx-font-size: 14px;");
 
         TableColumn<Invoice, String> paymentCol = new TableColumn<>("Thanh toán");
@@ -183,7 +176,7 @@ public class InvoicesView {
                     badge.setStyle("-fx-font-size: 12px; -fx-font-weight: 800; -fx-padding: 4 12;");
                     setGraphic(badge);
                     setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
-                    setAlignment(Pos.CENTER);
+                    setAlignment(Pos.CENTER_LEFT);
                 }
             }
         });
@@ -210,12 +203,13 @@ public class InvoicesView {
                 printBtn.setStyle("-fx-padding: 4 11; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 65px;");
 
                 delBtn.getStyleClass().add("btn-danger");
-                delBtn.setGraphic(IconUtils.icon("trash", 12, Color.web("#F87171")));
+                delBtn.setGraphic(IconUtils.icon("trash", 12, Color.WHITE));
                 delBtn.setGraphicTextGap(6);
                 delBtn.setMinWidth(65);
                 delBtn.setStyle("-fx-padding: 4 11; -fx-font-size: 12px; -fx-font-weight: 600; -fx-min-width: 65px;");
 
-                box.setAlignment(Pos.CENTER);
+                box.setAlignment(Pos.CENTER_LEFT);
+                setAlignment(Pos.CENTER_LEFT);
 
                 printBtn.setOnAction(e -> {
                     Invoice inv = getTableView().getItems().get(getIndex());
@@ -240,7 +234,7 @@ public class InvoicesView {
             }
         });
 
-        table.getColumns().addAll(idCol, codeCol, bookCodeCol, nameCol, roomCol, roomFeeCol, svcFeeCol, penaltyCol, discountCol, totalCol, paymentCol, dateCol, actionCol);
+        table.getColumns().addAll(idCol, bookCodeCol, nameCol, roomCol, roomFeeCol, svcFeeCol, penaltyCol, discountCol, totalCol, paymentCol, dateCol, actionCol);
 
         // Footer Summary
         HBox footer = new HBox(30);

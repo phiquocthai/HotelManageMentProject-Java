@@ -16,8 +16,12 @@ public enum AttendanceStatus {
     }
 
     public static AttendanceStatus fromLabel(String label) {
+        if (label == null || label.trim().isEmpty()) {
+            return null;
+        }
+        String trimmed = label.trim();
         for (AttendanceStatus s : values()) {
-            if (s.label.equalsIgnoreCase(label)) {
+            if (s.label.equalsIgnoreCase(trimmed) || s.name().equalsIgnoreCase(trimmed)) {
                 return s;
             }
         }

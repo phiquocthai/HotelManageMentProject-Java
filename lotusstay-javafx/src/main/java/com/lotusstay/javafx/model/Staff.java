@@ -45,4 +45,30 @@ public class Staff {
         u.status = status;
         this.user = u;
     }
+
+    public String getRoleDisplay() {
+        String r = resolveRole(this.role, this.username);
+        return switch (r) {
+            case "ADMIN" -> "Quản trị viên";
+            case "MANAGER" -> "Quản lý";
+            default -> "Lễ tân";
+        };
+    }
+
+    public static String resolveRole(String role, String username) {
+        if (role != null && !role.isBlank() && !"null".equalsIgnoreCase(role)) {
+            String clean = role.trim().toUpperCase();
+            if (clean.contains("ADMIN")) return "ADMIN";
+            if (clean.contains("MGR") || clean.contains("MANAGER")) return "MANAGER";
+            if (clean.contains("REC") || clean.contains("RECEPTION")) return "RECEPTION";
+            return clean;
+        }
+        if (username != null) {
+            String u = username.toLowerCase();
+            if (u.contains("admin")) return "ADMIN";
+            if (u.contains("mgr") || u.contains("manager") || u.contains("quanly")) return "MANAGER";
+            if (u.contains("rec") || u.contains("letan")) return "RECEPTION";
+        }
+        return "RECEPTION";
+    }
 }

@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 @Data
 public class RoomResponse {
     private Long id;
-    private Long roomTypeId;
     private String roomTypeName;
     private String roomNumber;
     private Integer floor;

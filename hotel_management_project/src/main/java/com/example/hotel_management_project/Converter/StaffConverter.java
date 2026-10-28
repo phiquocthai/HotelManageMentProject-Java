@@ -22,12 +22,6 @@ public class StaffConverter {
 
     public StaffResponse toStaffResponse(Staff staffEntity) {
         StaffResponse staffResponse = modelMapper.map(staffEntity, StaffResponse.class);
-        if (staffEntity.getCreatedBy() != null) {
-            staffResponse.setCreatedBy(staffEntity.getCreatedBy().getFullName());
-        }
-        if (staffEntity.getModifiedBy() != null) {
-            staffResponse.setModifiedBy(staffEntity.getModifiedBy().getFullName());
-        }
         return staffResponse;
     }
 
@@ -36,7 +30,6 @@ public class StaffConverter {
         entity.setEmail(request.getEmail());
         entity.setPhoneNumber(request.getPhoneNumber());
         entity.setFullName(request.getFullName());
-        entity.setJobTitle(request.getJobTitle());
         entity.setRole(request.getRole());
         entity.setProfileImage(request.getProfileImage());
         
